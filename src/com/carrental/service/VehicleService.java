@@ -12,11 +12,11 @@ public class VehicleService {
     public VehicleService() {
         this.cars = new ArrayList<>();
         // Pre-populate with some cars
-        addCar(new Car(1, "Toyota", "Camry", 5000));
-        addCar(new Car(2, "Honda", "Civic", 4500));
-        addCar(new Car(3, "Ford", "Mustang", 8000));
-        addCar(new Car(4, "Tesla", "Model 3", 5000));
-        addCar(new Car(5, "Chevrolet", "Malibu", 900));
+        addCar(new Car(1, "Toyota", "Camry", 5000, "images/camry.jpg"));
+        addCar(new Car(2, "Honda", "Civic", 4500, "images/civic.jpg"));
+        addCar(new Car(3, "Ford", "Mustang", 8000, "images/mustang.jpg"));
+        addCar(new Car(4, "Tesla", "Model 3", 5000, "images/tesla.jpg"));
+        addCar(new Car(5, "Chevrolet", "Malibu", 900, "images/malibu.jpg"));
     }
 
     public void addCar(Car car) {

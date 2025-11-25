@@ -1,6 +1,6 @@
 // State
 let cars = [];
-let bookings = [];
+let bookings = JSON.parse(localStorage.getItem('carRentalBookings')) || [];
 
 // DOM Elements
 const carListEl = document.getElementById('car-list');
@@ -16,7 +16,8 @@ const carIdInput = document.getElementById('car-id');
 
 // Initialize
 function init() {
-    fetchCars();
+    if (carListEl) fetchCars();
+    if (bookingListEl) renderBookings();
     setupEventListeners();
 }
 
@@ -29,8 +30,7 @@ async function fetchCars() {
 
         // Filter for valid JPEG images
         cars = data.filter(car => {
-            const isJpeg = car.image.toLowerCase().endsWith('.jpg') || car.image.toLowerCase().endsWith('.jpeg') || car.image.startsWith('http'); // Allow http for demo images, but warn for local
-            // For local files, we strictly enforce .jpg/.jpeg
+            const isJpeg = car.image.toLowerCase().endsWith('.jpg') || car.image.toLowerCase().endsWith('.jpeg') || car.image.startsWith('http');
             if (!car.image.startsWith('http') && !isJpeg) {
                 console.warn(`Skipping car ${car.name}: Image must be JPEG format.`);
                 return false;
@@ -41,12 +41,13 @@ async function fetchCars() {
         renderCars();
     } catch (error) {
         console.error('Error loading cars:', error);
-        carListEl.innerHTML = '<p class="empty-state">Error loading cars. Please try again later.</p>';
+        if (carListEl) carListEl.innerHTML = '<p class="empty-state">Error loading cars. Please try again later.</p>';
     }
 }
 
 // Render Cars
 function renderCars() {
+    if (!carListEl) return;
     carListEl.innerHTML = cars.map(car => `
         <div class="car-card">
             <img src="${car.image}" alt="${car.name}" class="car-image">
@@ -71,22 +72,23 @@ window.openBookingModal = function (carId) {
     const car = cars.find(c => c.id === carId);
     if (!car) return;
 
-    carIdInput.value = car.id;
-    modalCarName.textContent = car.name;
-    modalPrice.textContent = car.price;
-    daysInput.value = 1;
+    if (carIdInput) carIdInput.value = car.id;
+    if (modalCarName) modalCarName.textContent = car.name;
+    if (modalPrice) modalPrice.textContent = car.price;
+    if (daysInput) daysInput.value = 1;
     updateTotal();
 
-    modal.classList.add('active');
+    if (modal) modal.classList.add('active');
 };
 
 // Close Modal
 function closeModal() {
-    modal.classList.remove('active');
+    if (modal) modal.classList.remove('active');
 }
 
 // Update Total Price
 function updateTotal() {
+    if (!modalPrice || !daysInput || !modalTotal) return;
     const price = parseFloat(modalPrice.textContent);
     const days = parseInt(daysInput.value) || 0;
     modalTotal.textContent = (price * days).toFixed(2);
@@ -113,16 +115,21 @@ function handleBooking(e) {
     };
 
     bookings.unshift(booking);
-    renderBookings();
+    localStorage.setItem('carRentalBookings', JSON.stringify(bookings));
+
+    alert('Booking Confirmed!');
     closeModal();
     bookingForm.reset();
 
-    // Scroll to bookings
-    document.getElementById('my-bookings').scrollIntoView({ behavior: 'smooth' });
+    // If we are on the bookings page, render immediately, otherwise maybe redirect?
+    // For now, let's just stay here or redirect to bookings page
+    window.location.href = 'bookings.html';
 }
 
 // Render Bookings
 function renderBookings() {
+    if (!bookingListEl) return;
+
     if (bookings.length === 0) {
         bookingListEl.innerHTML = '<p class="empty-state">You haven\'t booked any cars yet.</p>';
         return;
@@ -142,14 +149,14 @@ function renderBookings() {
 
 // Event Listeners
 function setupEventListeners() {
-    closeModalBtn.addEventListener('click', closeModal);
+    if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
 
     window.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
+        if (modal && e.target === modal) closeModal();
     });
 
-    daysInput.addEventListener('input', updateTotal);
-    bookingForm.addEventListener('submit', handleBooking);
+    if (daysInput) daysInput.addEventListener('input', updateTotal);
+    if (bookingForm) bookingForm.addEventListener('submit', handleBooking);
 
     // Add Car Form Handling
     const addCarForm = document.getElementById('add-car-form');
@@ -195,8 +202,8 @@ async function handleAddCar(e) {
             if (response.ok) {
                 alert('Car added successfully!');
                 document.getElementById('add-car-modal').classList.remove('active');
-                addCarForm.reset();
-                fetchCars(); // Refresh list
+                document.getElementById('add-car-form').reset();
+                if (carListEl) fetchCars(); // Refresh list if on cars page
             } else {
                 const errorText = await response.text();
                 alert('Failed to add car: ' + errorText);
