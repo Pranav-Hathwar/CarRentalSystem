@@ -1,0 +1,30 @@
+[
+    {
+        "id": 1,
+        "name": "Toyota Camry",
+        "price": 50,
+        "image": "https://images.unsplash.com/photo-1621007947382-bb3c3968e3bb?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+        "features": ["Automatic", "5 Seats", "Hybrid"]
+    },
+    {
+        "id": 2,
+        "name": "Tesla Model 3",
+        "price": 85,
+        "image": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+        "features": ["Electric", "Autopilot", "Fast"]
+    },
+    {
+        "id": 3,
+        "name": "BMW X5",
+        "price": 120,
+        "image": "https://images.unsplash.com/photo-1556189250-72ba95452da9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+        "features": ["SUV", "Luxury", "AWD"]
+    },
+    {
+        "id": 4,
+        "name": "Ford Mustang",
+        "price": 95,
+        "image": "https://images.unsplash.com/photo-1584345604476-8ec5e12e42dd?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+        "features": ["Sports", "V8", "Convertible"]
+    }
+]
