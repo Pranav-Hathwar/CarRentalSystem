@@ -1,6 +1,6 @@
 // State
 let cars = [];
-let bookings = JSON.parse(localStorage.getItem('carRentalBookings')) || [];
+let bookings = [];
 
 // DOM Elements
 const carListEl = document.getElementById('car-list');
@@ -11,37 +11,46 @@ const bookingForm = document.getElementById('booking-form');
 const modalCarName = document.getElementById('modal-car-name');
 const modalPrice = document.getElementById('modal-price');
 const modalTotal = document.getElementById('modal-total');
-const daysInput = document.getElementById('days');
+const pickupTimeInput = document.getElementById('pickup-time');
+const dropoffTimeInput = document.getElementById('dropoff-time');
 const carIdInput = document.getElementById('car-id');
 
 // Initialize
 function init() {
     if (carListEl) fetchCars();
-    if (bookingListEl) renderBookings();
+    if (bookingListEl) fetchBookings();
     setupEventListeners();
 }
 
 // Fetch Cars from JSON
 async function fetchCars() {
     try {
+        console.log('Fetching cars...');
         const response = await fetch('/api/cars');
         if (!response.ok) throw new Error('Failed to load car data');
         const data = await response.json();
-
-        // Filter for valid JPEG images
-        cars = data.filter(car => {
-            const isJpeg = car.image.toLowerCase().endsWith('.jpg') || car.image.toLowerCase().endsWith('.jpeg') || car.image.startsWith('http');
-            if (!car.image.startsWith('http') && !isJpeg) {
-                console.warn(`Skipping car ${car.name}: Image must be JPEG format.`);
-                return false;
-            }
-            return true;
-        });
-
+        console.log('Cars data received:', data);
+        cars = data;
         renderCars();
     } catch (error) {
         console.error('Error loading cars:', error);
         if (carListEl) carListEl.innerHTML = '<p class="empty-state">Error loading cars. Please try again later.</p>';
+    }
+}
+
+// Fetch Bookings from API
+async function fetchBookings() {
+    try {
+        console.log('Fetching bookings...');
+        const response = await fetch('/api/bookings');
+        if (!response.ok) throw new Error('Failed to load bookings');
+        const data = await response.json();
+        console.log('Bookings data received:', data);
+        bookings = data;
+        renderBookings();
+    } catch (error) {
+        console.error('Error loading bookings:', error);
+        if (bookingListEl) bookingListEl.innerHTML = '<p class="empty-state">Error loading bookings. Please try again later.</p>';
     }
 }
 
@@ -54,7 +63,7 @@ function renderCars() {
             <div class="car-details">
                 <div class="car-title">
                     <span>${car.name}</span>
-                    <span class="car-price">$${car.price}/day</span>
+                    <span class="car-price">₹${car.price}/day</span>
                 </div>
                 <div class="car-features">
                     ${car.features.map(f => `<span>• ${f}</span>`).join('')}
@@ -62,9 +71,29 @@ function renderCars() {
                 <button class="btn btn-primary btn-block" onclick="openBookingModal(${car.id})">
                     Book Now
                 </button>
+                <button class="btn btn-danger btn-block" style="margin-top: 10px; background-color: #ef4444;" onclick="deleteCar(${car.id})">
+                    Delete
+                </button>
             </div>
         </div>
     `).join('');
+}
+
+async function deleteCar(id) {
+    if (!confirm('Are you sure you want to delete this car?')) return;
+
+    try {
+        const response = await fetch(`/api/cars?id=${id}`, { method: 'DELETE' });
+        if (response.ok) {
+            alert('Car deleted successfully');
+            fetchCars();
+        } else {
+            alert('Failed to delete car');
+        }
+    } catch (error) {
+        console.error('Error deleting car:', error);
+        alert('Error deleting car');
+    }
 }
 
 // Open Modal
@@ -75,7 +104,16 @@ window.openBookingModal = function (carId) {
     if (carIdInput) carIdInput.value = car.id;
     if (modalCarName) modalCarName.textContent = car.name;
     if (modalPrice) modalPrice.textContent = car.price;
-    if (daysInput) daysInput.value = 1;
+
+    // Set default times (pickup: now, dropoff: now + 24h)
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (pickupTimeInput) pickupTimeInput.value = now.toISOString().slice(0, 16);
+    if (dropoffTimeInput) dropoffTimeInput.value = tomorrow.toISOString().slice(0, 16);
+
     updateTotal();
 
     if (modal) modal.classList.add('active');
@@ -88,42 +126,72 @@ function closeModal() {
 
 // Update Total Price
 function updateTotal() {
-    if (!modalPrice || !daysInput || !modalTotal) return;
+    if (!modalPrice || !pickupTimeInput || !dropoffTimeInput || !modalTotal) return;
+
     const price = parseFloat(modalPrice.textContent);
-    const days = parseInt(daysInput.value) || 0;
-    modalTotal.textContent = (price * days).toFixed(2);
+    const pickup = new Date(pickupTimeInput.value);
+    const dropoff = new Date(dropoffTimeInput.value);
+
+    if (isNaN(pickup.getTime()) || isNaN(dropoff.getTime())) return;
+
+    const diffMs = dropoff - pickup;
+    const diffHours = diffMs / (1000 * 60 * 60);
+
+    if (diffHours <= 0) {
+        modalTotal.textContent = "0.00";
+        return;
+    }
+
+    // Calculate price based on hours (price is per day / 24 hours)
+    const total = (price / 24) * diffHours;
+    modalTotal.textContent = total.toFixed(2);
 }
 
 // Handle Booking Submission
-function handleBooking(e) {
+async function handleBooking(e) {
     e.preventDefault();
 
     const carId = parseInt(carIdInput.value);
-    const car = cars.find(c => c.id === carId);
     const name = document.getElementById('name').value;
-    const days = parseInt(daysInput.value);
+    const pickup = new Date(pickupTimeInput.value);
+    const dropoff = new Date(dropoffTimeInput.value);
     const total = parseFloat(modalTotal.textContent);
 
-    const booking = {
-        id: Date.now(),
-        car: car,
-        name: name,
-        days: days,
-        total: total,
-        status: 'Confirmed',
-        date: new Date().toLocaleDateString()
+    if (dropoff <= pickup) {
+        alert("Dropoff time must be after pickup time");
+        return;
+    }
+
+    const bookingData = {
+        carId: carId,
+        customerName: name,
+        pickupTime: pickup.toLocaleString(),
+        dropoffTime: dropoff.toLocaleString(),
+        totalPrice: total
     };
 
-    bookings.unshift(booking);
-    localStorage.setItem('carRentalBookings', JSON.stringify(bookings));
+    try {
+        const response = await fetch('/api/bookings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(bookingData)
+        });
 
-    alert('Booking Confirmed!');
-    closeModal();
-    bookingForm.reset();
-
-    // If we are on the bookings page, render immediately, otherwise maybe redirect?
-    // For now, let's just stay here or redirect to bookings page
-    window.location.href = 'bookings.html';
+        if (response.ok) {
+            alert('Booking Confirmed!');
+            closeModal();
+            bookingForm.reset();
+            window.location.href = 'bookings.html';
+        } else {
+            const errorText = await response.text();
+            alert('Failed to create booking: ' + errorText);
+        }
+    } catch (error) {
+        console.error('Error creating booking:', error);
+        alert('Error creating booking');
+    }
 }
 
 // Render Bookings
@@ -139,7 +207,7 @@ function renderBookings() {
         <div class="booking-item">
             <div class="booking-info">
                 <h3>${booking.car.name}</h3>
-                <p>${booking.days} days • Total: $${booking.total}</p>
+                <p>From: ${booking.pickup} <br> To: ${booking.dropoff} <br> Total: ₹${booking.total}</p>
                 <p class="text-light" style="font-size: 0.875rem; color: #6b7280;">Booked on ${booking.date}</p>
             </div>
             <span class="booking-status status-confirmed">${booking.status}</span>
@@ -155,7 +223,8 @@ function setupEventListeners() {
         if (modal && e.target === modal) closeModal();
     });
 
-    if (daysInput) daysInput.addEventListener('input', updateTotal);
+    if (pickupTimeInput) pickupTimeInput.addEventListener('change', updateTotal);
+    if (dropoffTimeInput) dropoffTimeInput.addEventListener('change', updateTotal);
     if (bookingForm) bookingForm.addEventListener('submit', handleBooking);
 
     // Add Car Form Handling

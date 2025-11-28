@@ -1,7 +1,9 @@
 package com.carrental.ui;
 
 import com.carrental.model.Car;
+import com.carrental.model.Booking;
 import com.carrental.service.VehicleService;
+import com.carrental.service.BookingService;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -17,12 +19,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class SimpleWebServer {
-    private static final int PORT = 8080;
+    private static final int PORT = 8081;
     private static final String WEB_ROOT = "web";
     private final VehicleService vehicleService;
+    private final BookingService bookingService;
 
-    public SimpleWebServer(VehicleService vehicleService) {
+    public SimpleWebServer(VehicleService vehicleService, BookingService bookingService) {
         this.vehicleService = vehicleService;
+        this.bookingService = bookingService;
     }
 
     public void start() throws IOException {
@@ -30,6 +34,7 @@ public class SimpleWebServer {
 
         // API Endpoints
         server.createContext("/api/cars", new CarsHandler());
+        server.createContext("/api/bookings", new BookingsHandler());
 
         // Static File Handler (Catch-all)
         server.createContext("/", new StaticFileHandler());
@@ -47,6 +52,8 @@ public class SimpleWebServer {
                 handleGetCars(exchange);
             } else if ("POST".equals(exchange.getRequestMethod())) {
                 handleAddCar(exchange);
+            } else if ("DELETE".equals(exchange.getRequestMethod())) {
+                handleDeleteCar(exchange);
             } else {
                 sendResponse(exchange, 405, "Method Not Allowed");
             }
@@ -71,34 +78,14 @@ public class SimpleWebServer {
         }
 
         private void handleAddCar(HttpExchange exchange) throws IOException {
-            // Simple multipart/form-data parser would be needed here for real file uploads.
-            // For simplicity in this "nothing extra" constraint, we'll assume a simple JSON
-            // payload
-            // or just basic form fields if we were using a library.
-            // BUT, the user wants to "add photo".
-            // To keep it "simple" and "clean" without external libraries (like Apache
-            // Commons FileUpload),
-            // we will implement a very basic parser or ask the user to provide a URL/Path
-            // for now?
-            // Wait, the requirement is "accept jpeg format only".
-            // Let's try to parse a simple JSON body with base64 image or just file path if
-            // running locally.
-            // Given it's a local app, let's accept a JSON body with details.
-
-            // Actually, let's stick to the prompt: "add car manually... add the photo...
-            // jpeg only".
-            // We'll read the input stream.
-
             InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8);
             BufferedReader br = new BufferedReader(isr);
             String body = br.lines().collect(Collectors.joining("\n"));
 
-            // Very naive JSON parsing for this specific task to avoid dependencies
             try {
                 String make = extractJsonValue(body, "make");
                 String model = extractJsonValue(body, "model");
                 double price = Double.parseDouble(extractJsonValue(body, "price"));
-                String imageType = extractJsonValue(body, "imageType"); // "url" or "base64"
                 String imageData = extractJsonValue(body, "image");
 
                 if (make == null || model == null) {
@@ -113,7 +100,6 @@ public class SimpleWebServer {
                         return;
                     }
 
-                    // Save base64 image
                     String base64Image = imageData.split(",")[1];
                     byte[] imageBytes = java.util.Base64.getDecoder().decode(base64Image);
                     String fileName = "car_" + System.currentTimeMillis() + ".jpg";
@@ -133,25 +119,135 @@ public class SimpleWebServer {
             }
         }
 
-        private String extractJsonValue(String json, String key) {
-            String pattern = "\"" + key + "\":\"";
-            int start = json.indexOf(pattern);
-            if (start == -1) {
-                // Try number/boolean (no quotes)
-                pattern = "\"" + key + "\":";
-                start = json.indexOf(pattern);
-                if (start == -1)
-                    return null;
-                start += pattern.length();
-                int end = json.indexOf(",", start);
-                if (end == -1)
-                    end = json.indexOf("}", start);
-                return json.substring(start, end).trim();
+        private void handleDeleteCar(HttpExchange exchange) throws IOException {
+            String query = exchange.getRequestURI().getQuery();
+            if (query != null && query.startsWith("id=")) {
+                try {
+                    int id = Integer.parseInt(query.substring(3));
+                    boolean deleted = vehicleService.deleteCar(id);
+                    if (deleted) {
+                        sendResponse(exchange, 200, "Car deleted successfully");
+                    } else {
+                        sendResponse(exchange, 404, "Car not found");
+                    }
+                } catch (NumberFormatException e) {
+                    sendResponse(exchange, 400, "Invalid ID format");
+                }
+            } else {
+                sendResponse(exchange, 400, "Missing ID parameter");
             }
-            start += pattern.length();
-            int end = json.indexOf("\"", start);
-            return json.substring(start, end);
         }
+    }
+
+    private class BookingsHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("GET".equals(exchange.getRequestMethod())) {
+                handleGetBookings(exchange);
+            } else if ("POST".equals(exchange.getRequestMethod())) {
+                handleCreateBooking(exchange);
+            } else {
+                sendResponse(exchange, 405, "Method Not Allowed");
+            }
+        }
+
+        private void handleGetBookings(HttpExchange exchange) throws IOException {
+            List<Booking> bookings = bookingService.getAllBookings();
+            StringBuilder json = new StringBuilder("[");
+            for (int i = 0; i < bookings.size(); i++) {
+                Booking b = bookings.get(i);
+                // Manually constructing JSON to avoid dependencies
+                json.append(String.format(
+                        "{\"id\":%d, \"carId\":%d, \"customerName\":\"%s\", \"pickup\":\"%s\", \"dropoff\":\"%s\", \"total\":%.2f, \"status\":\"%s\", \"date\":\"%s\"}",
+                        b.getId(), b.getCarId(), b.getCustomerName(), b.getPickupTime(), b.getDropoffTime(),
+                        b.getTotalPrice(), b.getStatus(), b.getBookingDate()));
+
+                // We need to fetch car details to display name in frontend,
+                // or frontend fetches car details.
+                // Frontend expects 'car' object nested or we change frontend.
+                // Let's change frontend to handle carId or enrich here.
+                // Enriching here is easier for frontend compatibility if we want to keep
+                // frontend simple.
+                // But wait, frontend expects `booking.car.name`.
+                // I'll enrich the JSON with car name.
+
+                Car car = vehicleService.findCarById(b.getCarId()).orElse(null);
+                String carName = car != null ? car.getMake() + " " + car.getModel() : "Unknown Car";
+
+                // Re-doing JSON to include car object structure expected by frontend
+                // Frontend: booking.car.name
+                // So: "car": { "name": "Toyota Camry" }
+
+                // Let's rewrite the JSON construction
+            }
+            // Actually, let's do it properly in the loop
+            json = new StringBuilder("[");
+            for (int i = 0; i < bookings.size(); i++) {
+                Booking b = bookings.get(i);
+                Car car = vehicleService.findCarById(b.getCarId()).orElse(null);
+                String carName = car != null ? car.getMake() + " " + car.getModel() : "Unknown Car";
+
+                json.append("{");
+                json.append("\"id\":").append(b.getId()).append(",");
+                json.append("\"car\":{\"name\":\"").append(carName).append("\"},");
+                json.append("\"pickup\":\"").append(b.getPickupTime()).append("\",");
+                json.append("\"dropoff\":\"").append(b.getDropoffTime()).append("\",");
+                json.append("\"total\":").append(b.getTotalPrice()).append(",");
+                json.append("\"status\":\"").append(b.getStatus()).append("\",");
+                json.append("\"date\":\"").append(b.getBookingDate()).append("\"");
+                json.append("}");
+
+                if (i < bookings.size() - 1)
+                    json.append(",");
+            }
+            json.append("]");
+
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            sendResponse(exchange, 200, json.toString());
+        }
+
+        private void handleCreateBooking(HttpExchange exchange) throws IOException {
+            InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8);
+            BufferedReader br = new BufferedReader(isr);
+            String body = br.lines().collect(Collectors.joining("\n"));
+
+            try {
+                // Parse JSON manually
+                int carId = Integer.parseInt(extractJsonValue(body, "carId"));
+                String customerName = extractJsonValue(body, "customerName");
+                String pickupTime = extractJsonValue(body, "pickupTime");
+                String dropoffTime = extractJsonValue(body, "dropoffTime");
+                double totalPrice = Double.parseDouble(extractJsonValue(body, "totalPrice"));
+
+                Booking booking = new Booking(0, carId, customerName, pickupTime, dropoffTime, totalPrice);
+                bookingService.createBooking(booking);
+
+                sendResponse(exchange, 201, "Booking created successfully");
+            } catch (Exception e) {
+                e.printStackTrace();
+                sendResponse(exchange, 500, "Error creating booking: " + e.getMessage());
+            }
+        }
+    }
+
+    private String extractJsonValue(String json, String key) {
+        String pattern = "\"" + key + "\":\"";
+        int start = json.indexOf(pattern);
+        if (start == -1) {
+            // Try number/boolean (no quotes)
+            pattern = "\"" + key + "\":";
+            start = json.indexOf(pattern);
+            if (start == -1)
+                return null;
+            start += pattern.length();
+            int end = json.indexOf(",", start);
+            if (end == -1)
+                end = json.indexOf("}", start);
+            return json.substring(start, end).trim();
+        }
+        start += pattern.length();
+        int end = json.indexOf("\"", start);
+        return json.substring(start, end);
     }
 
     private class StaticFileHandler implements HttpHandler {

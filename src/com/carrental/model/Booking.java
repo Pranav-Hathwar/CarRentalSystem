@@ -1,69 +1,87 @@
 package com.carrental.model;
 
-import java.time.LocalDateTime;
-
 public class Booking {
-    public enum Status {
-        PENDING, CONFIRMED, CANCELLED
-    }
-
-    private int bookingId;
-    private Car car;
+    private long id;
+    private int carId;
     private String customerName;
-    private int days;
+    private String pickupTime;
+    private String dropoffTime;
     private double totalPrice;
-    private Status status;
-    private LocalDateTime bookingTime;
+    private String status;
+    private String bookingDate;
 
-    public Booking(int bookingId, Car car, String customerName, int days) {
-        this.bookingId = bookingId;
-        this.car = car;
+    public Booking(long id, int carId, String customerName, String pickupTime, String dropoffTime, double totalPrice) {
+        this.id = id;
+        this.carId = carId;
         this.customerName = customerName;
-        this.days = days;
-        this.totalPrice = car.calculatePrice(days);
-        this.status = Status.PENDING;
-        this.bookingTime = LocalDateTime.now();
+        this.pickupTime = pickupTime;
+        this.dropoffTime = dropoffTime;
+        this.totalPrice = totalPrice;
+        this.status = "Confirmed";
+        this.bookingDate = new java.util.Date().toString();
     }
 
-    public int getBookingId() {
-        return bookingId;
+    public long getId() {
+        return id;
     }
 
-    public Car getCar() {
-        return car;
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public int getCarId() {
+        return carId;
+    }
+
+    public void setCarId(int carId) {
+        this.carId = carId;
     }
 
     public String getCustomerName() {
         return customerName;
     }
 
-    public int getDays() {
-        return days;
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public String getPickupTime() {
+        return pickupTime;
+    }
+
+    public void setPickupTime(String pickupTime) {
+        this.pickupTime = pickupTime;
+    }
+
+    public String getDropoffTime() {
+        return dropoffTime;
+    }
+
+    public void setDropoffTime(String dropoffTime) {
+        this.dropoffTime = dropoffTime;
     }
 
     public double getTotalPrice() {
         return totalPrice;
     }
 
-    public Status getStatus() {
+    public void setTotalPrice(double totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
-    public LocalDateTime getBookingTime() {
-        return bookingTime;
+    public String getBookingDate() {
+        return bookingDate;
     }
 
-    @Override
-    public String toString() {
-        return "Booking ID: " + bookingId +
-                " | Customer: " + customerName +
-                " | Car: " + car.getMake() + " " + car.getModel() +
-                " | Days: " + days +
-                " | Total: $" + totalPrice +
-                " | Status: " + status;
+    public void setBookingDate(String bookingDate) {
+        this.bookingDate = bookingDate;
     }
 }

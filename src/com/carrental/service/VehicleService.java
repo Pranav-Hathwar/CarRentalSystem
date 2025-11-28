@@ -38,4 +38,8 @@ public class VehicleService {
     public List<Car> getAllCars() {
         return new ArrayList<>(cars);
     }
+
+    public boolean deleteCar(int id) {
+        return cars.removeIf(car -> car.getId() == id);
+    }
 }

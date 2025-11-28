@@ -47,12 +47,16 @@
                     <input type="text" id="name" required placeholder="John Doe">
                 </div>
                 <div class="form-group">
-                    <label for="days">Number of Days</label>
-                    <input type="number" id="days" min="1" max="30" required value="1">
+                    <label for="pickup-time">Pickup Time</label>
+                    <input type="datetime-local" id="pickup-time" required>
+                </div>
+                <div class="form-group">
+                    <label for="dropoff-time">Dropoff Time</label>
+                    <input type="datetime-local" id="dropoff-time" required>
                 </div>
                 <div class="booking-summary">
-                    <p>Price per day: $<span id="modal-price">0</span></p>
-                    <p class="total-price">Total: $<span id="modal-total">0</span></p>
+                    <p>Price per day: ₹<span id="modal-price">0</span></p>
+                    <p class="total-price">Total: ₹<span id="modal-total">0</span></p>
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">Confirm Booking</button>
             </form>
@@ -75,8 +79,8 @@
                     <input type="text" id="car-model" required placeholder="Camry">
                 </div>
                 <div class="form-group">
-                    <label for="car-price">Price per Day ($)</label>
-                    <input type="number" id="car-price" required placeholder="50">
+                    <label for="car-price">Price per Day (₹)</label>
+                    <input type="number" id="car-price" required placeholder="5000">
                 </div>
                 <div class="form-group">
                     <label for="car-image">Car Image (JPEG only)</label>
