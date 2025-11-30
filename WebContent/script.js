@@ -29,6 +29,7 @@ function init() {
     if (carListEl) {
         fetchCars();
         setupSearchFilters();
+        updateAdminButton();
     }
     if (bookingListEl) {
         if (!currentUser) {
@@ -73,6 +74,36 @@ function logout() {
     localStorage.removeItem('currentUser');
     currentUser = null;
     window.location.href = 'index.html';
+}
+
+// Update Admin Button Visibility
+function updateAdminButton() {
+    const adminBtn = document.getElementById('admin-add-car-btn');
+    if (!adminBtn) return;
+    
+    currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+    
+    if (currentUser && currentUser.role === 'ADMIN') {
+        adminBtn.style.display = 'inline-block';
+    } else {
+        adminBtn.style.display = 'none';
+    }
+}
+
+// Open Add Car Modal
+function openAddCarModal() {
+    const modal = document.getElementById('add-car-modal');
+    if (modal) {
+        modal.classList.add('active');
+    }
+}
+
+// Close Add Car Modal
+function closeAddCarModal() {
+    const modal = document.getElementById('add-car-modal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
 }
 
 // Fetch Cars from API
@@ -454,15 +485,25 @@ async function handleSignup(e) {
     }
 }
 
-// Handle Add Car
+// Handle Add Car (Admin)
 async function handleAddCar(e) {
     e.preventDefault();
     
-    const make = document.getElementById('car-make').value;
-    const model = document.getElementById('car-model').value;
-    const price = document.getElementById('car-price').value;
-    const features = document.getElementById('car-features').value;
-    const imageUrl = document.getElementById('car-image-url').value;
+    if (!currentUser || currentUser.role !== 'ADMIN') {
+        alert('You do not have permission to add cars');
+        return;
+    }
+    
+    const make = document.getElementById('car-make').value.trim();
+    const model = document.getElementById('car-model').value.trim();
+    const price = document.getElementById('car-price').value.trim();
+    const imageUrl = document.getElementById('car-image-url').value.trim();
+    const features = document.getElementById('car-features').value.trim();
+    
+    if (!make || !model || !price || !imageUrl) {
+        alert('Please fill in all required fields');
+        return;
+    }
     
     const carData = {
         name: `${make} ${model}`,
@@ -478,26 +519,28 @@ async function handleAddCar(e) {
             submitBtn.textContent = 'Adding...';
         }
         
-        const response = await fetch('/api/cars', {
+        const response = await fetch('/api/admin/cars', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
+            credentials: 'include',
             body: JSON.stringify(carData)
         });
         
-        if (response.ok) {
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
             alert('Car added successfully!');
-            document.getElementById('add-car-modal').classList.remove('active');
+            closeAddCarModal();
             e.target.reset();
             if (carListEl) fetchCars();
         } else {
-            const errorText = await response.text();
-            alert('Failed to add car: ' + errorText);
+            alert(data.message || 'Failed to add car');
         }
     } catch (error) {
         console.error('Error adding car:', error);
-        alert('Error adding car');
+        alert('Error adding car. Please try again.');
     } finally {
         const submitBtn = e.target.querySelector('button[type="submit"]');
         if (submitBtn) {
@@ -515,6 +558,8 @@ function setupEventListeners() {
     
     window.addEventListener('click', (e) => {
         if (modal && e.target === modal) closeModal();
+        const addCarModal = document.getElementById('add-car-modal');
+        if (addCarModal && e.target === addCarModal) closeAddCarModal();
     });
     
     if (pickupTimeInput) pickupTimeInput.addEventListener('change', updateTotal);
@@ -522,6 +567,12 @@ function setupEventListeners() {
     if (bookingForm) bookingForm.addEventListener('submit', handleBooking);
     if (loginForm) loginForm.addEventListener('submit', handleLogin);
     if (signupForm) signupForm.addEventListener('submit', handleSignup);
+    
+    // Add Car Modal Close Button
+    const addCarCloseBtn = document.querySelector('#add-car-modal .close-btn');
+    if (addCarCloseBtn) {
+        addCarCloseBtn.addEventListener('click', closeAddCarModal);
+    }
     
     const addCarForm = document.getElementById('add-car-form');
     if (addCarForm) {

@@ -256,6 +256,17 @@ ul {
     box-shadow: 0 15px 35px -5px rgba(236, 72, 153, 0.5);
 }
 
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+    color: var(--white);
+    box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
+}
+
+.btn-success:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px -5px rgba(16, 185, 129, 0.5);
+}
+
 .btn-block {
     display: block;
     width: 100%;
