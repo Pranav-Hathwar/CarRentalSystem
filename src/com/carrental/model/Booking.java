@@ -1,32 +1,43 @@
 package com.carrental.model;
 
+import java.sql.Date;
+
 public class Booking {
-    private long id;
+    private int id;
+    private int userId;
     private int carId;
-    private String customerName;
-    private String pickupTime;
-    private String dropoffTime;
+    private Date startDate;
+    private Date endDate;
     private double totalPrice;
     private String status;
-    private String bookingDate;
 
-    public Booking(long id, int carId, String customerName, String pickupTime, String dropoffTime, double totalPrice) {
-        this.id = id;
-        this.carId = carId;
-        this.customerName = customerName;
-        this.pickupTime = pickupTime;
-        this.dropoffTime = dropoffTime;
-        this.totalPrice = totalPrice;
-        this.status = "Confirmed";
-        this.bookingDate = new java.util.Date().toString();
+    public Booking() {
     }
 
-    public long getId() {
+    public Booking(int id, int userId, int carId, Date startDate, Date endDate, double totalPrice, String status) {
+        this.id = id;
+        this.userId = userId;
+        this.carId = carId;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.totalPrice = totalPrice;
+        this.status = status;
+    }
+
+    public int getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(int id) {
         this.id = id;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     public int getCarId() {
@@ -37,28 +48,20 @@ public class Booking {
         this.carId = carId;
     }
 
-    public String getCustomerName() {
-        return customerName;
+    public Date getStartDate() {
+        return startDate;
     }
 
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
     }
 
-    public String getPickupTime() {
-        return pickupTime;
+    public Date getEndDate() {
+        return endDate;
     }
 
-    public void setPickupTime(String pickupTime) {
-        this.pickupTime = pickupTime;
-    }
-
-    public String getDropoffTime() {
-        return dropoffTime;
-    }
-
-    public void setDropoffTime(String dropoffTime) {
-        this.dropoffTime = dropoffTime;
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
     }
 
     public double getTotalPrice() {
@@ -75,13 +78,5 @@ public class Booking {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public String getBookingDate() {
-        return bookingDate;
-    }
-
-    public void setBookingDate(String bookingDate) {
-        this.bookingDate = bookingDate;
     }
 }

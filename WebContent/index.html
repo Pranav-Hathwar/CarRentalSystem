@@ -27,9 +27,22 @@
         <div class="container hero-content">
             <h1>Drive Your Dreams</h1>
             <p>Premium car rentals at affordable prices. Choose from our wide range of luxury and comfort vehicles.</p>
-            <a href="cars.html" class="btn btn-primary">Browse Cars</a>
+            <a href="#featured-cars" class="btn btn-primary">Explore Our Fleet</a>
         </div>
     </header>
+
+    <section id="featured-cars" class="section bg-light">
+        <div class="container">
+            <h2 class="section-title">Featured Vehicles</h2>
+            <div id="featured-car-list" class="car-grid">
+                <!-- Cars will be populated here -->
+                <div class="loading">Loading cars...</div>
+            </div>
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="cars.html" class="btn btn-secondary">View All Cars</a>
+            </div>
+        </div>
+    </section>
 
     <section class="section">
         <div class="container">
@@ -98,11 +111,69 @@
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2023 CarRental System. All rights reserved.</p>
+            <p>&copy; 2024 CarRental System. All rights reserved.</p>
         </div>
     </footer>
 
     <script src="script.js"></script>
+    <script>
+        // Load featured cars on index page
+        async function loadFeaturedCars() {
+            const featuredList = document.getElementById('featured-car-list');
+            if (!featuredList) return;
+            
+            try {
+                const response = await fetch('/api/cars');
+                if (!response.ok) throw new Error('Failed to load cars');
+                const cars = await response.json();
+                
+                // Show first 6 cars
+                const featuredCars = Array.isArray(cars) ? cars.slice(0, 6) : [];
+                
+                if (featuredCars.length === 0) {
+                    featuredList.innerHTML = '<p class="empty-state">No cars available at the moment.</p>';
+                    return;
+                }
+                
+                featuredList.innerHTML = featuredCars.map(car => {
+                    const imageUrl = car.image && car.image.startsWith('http') ? car.image : 
+                                    (car.image && car.image.startsWith('images/') ? car.image : 
+                                    'images/default.jpg');
+                    
+                    return `
+                        <div class="car-card">
+                            <div class="car-image-container">
+                                <img src="${imageUrl}" alt="${car.name}" class="car-image" onerror="this.src='images/default.jpg'">
+                                <div class="car-badge">₹${car.price ? car.price.toFixed(0) : '0'}/day</div>
+                            </div>
+                            <div class="car-details">
+                                <h3 class="car-title">${escapeHtml(car.name || 'Unknown Car')}</h3>
+                                <div class="car-features">
+                                    ${car.features ? escapeHtml(car.features).split(',').slice(0, 3).map(f => `<span class="feature-tag">${f.trim()}</span>`).join('') : ''}
+                                </div>
+                                <a href="cars.html" class="btn btn-primary btn-block">View Details</a>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading featured cars:', error);
+                featuredList.innerHTML = '<p class="empty-state">Error loading cars. Please try again later.</p>';
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadFeaturedCars);
+        } else {
+            loadFeaturedCars();
+        }
+    </script>
 </body>
 
 </html>

@@ -4,17 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Car Rental System - My Bookings</title>
+    <title>My Bookings - CarRental</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
     <nav class="navbar">
         <div class="container nav-container">
-            <a href="index.html" class="logo">CarRental</a>
+            <a href="index.html" class="logo">🚗 CarRental</a>
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="cars.html">Cars</a></li>
@@ -23,18 +23,19 @@
         </div>
     </nav>
 
-    <section class="section bg-light" style="min-height: 80vh;">
+    <section class="section">
         <div class="container">
-            <h2 class="section-title">My Bookings</h2>
-            <div class="booking-list" id="booking-list">
-                <p class="empty-state">You haven't booked any cars yet.</p>
+            <h2 class="section-title">My Bookings 📋</h2>
+            <div id="booking-list">
+                <!-- Bookings will be populated here -->
+                <div class="loading">Loading bookings...</div>
             </div>
         </div>
     </section>
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2023 CarRental System. All rights reserved.</p>
+            <p>&copy; 2024 CarRental System. All rights reserved.</p>
         </div>
     </footer>
 

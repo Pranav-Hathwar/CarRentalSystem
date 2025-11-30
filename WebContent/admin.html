@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Car Rental System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        h2 {
+            color: #555;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .refresh-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .refresh-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        <button class="refresh-btn" onclick="loadData()">Refresh Data</button>
+
+        <h2>Users</h2>
+        <table id="usersTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <h2>Bookings</h2>
+        <table id="bookingsTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Car ID</th>
+                    <th>Total Price</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        async function loadData() {
+            try {
+                const response = await fetch('/api/admin/data');
+                const data = await response.json();
+
+                // Populate Users
+                const usersBody = document.querySelector('#usersTable tbody');
+                usersBody.innerHTML = '';
+                data.users.forEach(user => {
+                    const row = `<tr>
+                        <td>${user.id}</td>
+                        <td>${user.username}</td>
+                        <td>${user.role}</td>
+                    </tr>`;
+                    usersBody.innerHTML += row;
+                });
+
+                // Populate Bookings
+                const bookingsBody = document.querySelector('#bookingsTable tbody');
+                bookingsBody.innerHTML = '';
+                data.bookings.forEach(booking => {
+                    const row = `<tr>
+                        <td>${booking.id}</td>
+                        <td>${booking.customer}</td>
+                        <td>${booking.carId}</td>
+                        <td>$${booking.total.toFixed(2)}</td>
+                        <td>${booking.status}</td>
+                    </tr>`;
+                    bookingsBody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Failed to load data. Ensure you are logged in or server is running.');
+            }
+        }
+
+        // Load data on page load
+        loadData();
+    </script>
+</body>
+
+</html>

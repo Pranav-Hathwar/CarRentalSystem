@@ -1,44 +1,60 @@
 package com.carrental.model;
 
-public class Car extends Vehicle {
-    private boolean isAvailable;
-    private String imagePath;
+public class Car {
+    private int id;
+    private String name;
+    private double price;
+    private String image;
+    private String features;
 
-    public Car(int id, String make, String model, double basePricePerDay) {
-        super(id, make, model, basePricePerDay);
-        this.isAvailable = true;
-        this.imagePath = "images/default.jpg"; // Default image
+    public Car() {
     }
 
-    public Car(int id, String make, String model, double basePricePerDay, String imagePath) {
-        super(id, make, model, basePricePerDay);
-        this.isAvailable = true;
-        this.imagePath = imagePath;
+    public Car(int id, String name, double price, String image, String features) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.image = image;
+        this.features = features;
     }
 
-    public boolean isAvailable() {
-        return isAvailable;
+    public int getId() {
+        return id;
     }
 
-    public void setAvailable(boolean available) {
-        isAvailable = available;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    public String getImagePath() {
-        return imagePath;
+    public String getName() {
+        return name;
     }
 
-    public void setImagePath(String imagePath) {
-        this.imagePath = imagePath;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    @Override
-    public double calculatePrice(int days) {
-        return getBasePricePerDay() * days;
+    public double getPrice() {
+        return price;
     }
 
-    @Override
-    public String toString() {
-        return super.toString() + (isAvailable ? " [Available]" : " [Rented]");
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public String getFeatures() {
+        return features;
+    }
+
+    public void setFeatures(String features) {
+        this.features = features;
     }
 }
