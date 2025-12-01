@@ -4,6 +4,20 @@ let filteredCars = [];
 let bookings = [];
 let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
+// Price scaling: convert seed/base prices to more realistic values for display
+// Logic: if stored price seems like a small base (<= 1000), scale by 100 to approximate INR/day
+// This keeps already-large values unaffected.
+function getDisplayedPrice(basePrice) {
+    const p = parseFloat(basePrice) || 0;
+    const scale = p <= 1000 ? 100 : 1;
+    return parseFloat((p * scale).toFixed(2));
+}
+
+function formatCurrency(amount) {
+    // Format as INR rounded
+    return '₹' + Number(amount).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+}
+
 // DOM Elements
 const carListEl = document.getElementById('car-list');
 const bookingListEl = document.getElementById('booking-list');
@@ -158,11 +172,12 @@ function renderCars() {
                         (car.image && car.image.startsWith('images/') ? car.image : 
                         'images/default.jpg');
         
+        const displayed = getDisplayedPrice(car.price);
         return `
             <div class="car-card">
                 <div class="car-image-container">
                     <img src="${imageUrl}" alt="${car.name}" class="car-image" onerror="this.src='images/default.jpg'">
-                    <div class="car-badge">₹${car.price.toFixed(0)}/day</div>
+                    <div class="car-badge">${formatCurrency(displayed)}/day</div>
                 </div>
                 <div class="car-details">
                     <h3 class="car-title">${escapeHtml(car.name)}</h3>
@@ -313,7 +328,7 @@ window.openBookingModal = function(carId) {
     
     if (carIdInput) carIdInput.value = car.id;
     if (modalCarName) modalCarName.textContent = car.name;
-    if (modalPrice) modalPrice.textContent = car.price.toFixed(2);
+    if (modalPrice) modalPrice.textContent = getDisplayedPrice(car.price).toFixed(2);
     
     // Set default times
     const now = new Date();

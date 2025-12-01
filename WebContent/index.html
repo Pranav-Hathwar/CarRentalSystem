@@ -145,7 +145,7 @@
                         <div class="car-card">
                             <div class="car-image-container">
                                 <img src="${imageUrl}" alt="${car.name}" class="car-image" onerror="this.src='images/default.jpg'">
-                                <div class="car-badge">₹${car.price ? car.price.toFixed(0) : '0'}/day</div>
+                                            <div class="car-badge">${formatCurrency(getDisplayedPrice(car.price))}/day</div>
                             </div>
                             <div class="car-details">
                                 <h3 class="car-title">${escapeHtml(car.name || 'Unknown Car')}</h3>
