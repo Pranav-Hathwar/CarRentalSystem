@@ -23,8 +23,26 @@ const searchInput = document.getElementById('search-input');
 const priceFilter = document.getElementById('price-filter');
 const sortFilter = document.getElementById('sort-filter');
 
+// Theme: initialize from localStorage
+function initTheme() {
+    const theme = localStorage.getItem('theme') || 'dark';
+    if (theme === 'dark') document.body.classList.add('dark-theme');
+    else document.body.classList.remove('dark-theme');
+    const btn = document.getElementById('theme-toggle');
+    if (btn) btn.textContent = document.body.classList.contains('dark-theme') ? '☀' : '☾';
+}
+
+function toggleTheme() {
+    document.body.classList.toggle('dark-theme');
+    const active = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
+    localStorage.setItem('theme', active);
+    const btn = document.getElementById('theme-toggle');
+    if (btn) btn.textContent = document.body.classList.contains('dark-theme') ? '☀' : '☾';
+}
+
 // Initialize
 function init() {
+    initTheme();
     updateNav();
     if (carListEl) {
         fetchCars();
@@ -578,6 +596,10 @@ function setupEventListeners() {
     if (addCarForm) {
         addCarForm.addEventListener('submit', handleAddCar);
     }
+
+    // Theme toggle
+    const themeBtn = document.getElementById('theme-toggle');
+    if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
 }
 
 function escapeHtml(text) {

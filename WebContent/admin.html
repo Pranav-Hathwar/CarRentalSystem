@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Car Rental System</title>
+    <link rel="stylesheet" href="style.css">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -154,7 +155,10 @@
     <div class="container">
         <div class="header-actions">
             <h1>Admin Dashboard</h1>
-            <button class="logout-btn" onclick="logout()">Logout</button>
+            <div>
+                <button id="theme-toggle" class="theme-toggle" title="Toggle theme">☾</button>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
         </div>
 
         <div id="messageAlert"></div>
@@ -304,6 +308,7 @@
         // Load data on page load
         loadData();
     </script>
+    <script src="script.js"></script>
 </body>
 
 </html>
