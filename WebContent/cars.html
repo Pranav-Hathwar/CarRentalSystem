@@ -55,6 +55,20 @@
                 <!-- Cars will be populated here -->
                 <div class="loading">Loading cars...</div>
             </div>
+
+            <!-- Pagination Controls -->
+            <div class="pagination-container" style="margin-top: 1.5rem; display:flex; justify-content:space-between; align-items:center; gap:1rem;">
+                <div>
+                    <label for="page-size" style="color:var(--text-light); margin-right:0.5rem;">Per page:</label>
+                    <select id="page-size" class="filter-select">
+                        <option value="4">4</option>
+                        <option value="6" selected>6</option>
+                        <option value="9">9</option>
+                        <option value="12">12</option>
+                    </select>
+                </div>
+                <div id="pagination" class="pagination"></div>
+            </div>
         </div>
     </section>
 

@@ -18,6 +18,11 @@ function formatCurrency(amount) {
     return '₹' + Number(amount).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
 
+// Pagination state
+let currentPage = 1;
+let pageSize = parseInt(localStorage.getItem('pageSize') || '6', 10);
+let imageObserver = null;
+
 // DOM Elements
 const carListEl = document.getElementById('car-list');
 const bookingListEl = document.getElementById('booking-list');
@@ -149,6 +154,8 @@ async function fetchCars() {
         
         cars = Array.isArray(data) ? data : [];
         filteredCars = [...cars];
+        // reset pagination
+        currentPage = 1;
         renderCars();
     } catch (error) {
         console.error('Error loading cars:', error);
@@ -213,17 +220,25 @@ function applyFilters() {
     if (searchInput && searchInput.value) {
         const searchTerm = searchInput.value.toLowerCase();
         filtered = filtered.filter(car => 
-            car.name.toLowerCase().includes(searchTerm) ||
-            (car.features && car.features.toLowerCase().includes(searchTerm))
+
+    // Apply pagination
+    const total = filteredCars.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    const pageItems = filteredCars.slice(start, end);
+
+    carListEl.innerHTML = pageItems.map(car => {
         );
     }
     
-    // Price filter
-    if (priceFilter && priceFilter.value !== 'all') {
+        
+        return `
         filtered = filtered.filter(car => {
             const price = car.price;
-            switch(priceFilter.value) {
-                case 'low': return price <= 50;
+                    <img data-src="${imageUrl}" src="images/default.jpg" alt="${car.name}" class="car-image lazy" onerror="this.src='images/default.jpg'">
+                    <div class="car-badge">${formatCurrency(displayed)}/day</div>
                 case 'medium': return price > 50 && price <= 100;
                 case 'high': return price > 100;
                 default: return true;
@@ -237,7 +252,81 @@ function applyFilters() {
             case 'name':
                 filtered.sort((a, b) => a.name.localeCompare(b.name));
                 break;
+
+    renderPagination(total, totalPages);
+    observeLazyImages();
             case 'price-low':
+
+function renderPagination(totalItems, totalPages) {
+    const paginationEl = document.getElementById('pagination');
+    if (!paginationEl) return;
+    paginationEl.innerHTML = '';
+
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'page-btn';
+    prevBtn.textContent = 'Prev';
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => changePage(currentPage - 1);
+    paginationEl.appendChild(prevBtn);
+
+    // show up to 5 page buttons centered
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, startPage + 4);
+    for (let p = startPage; p <= endPage; p++) {
+        const btn = document.createElement('button');
+        btn.className = 'page-btn' + (p === currentPage ? ' active' : '');
+        btn.textContent = p;
+        btn.onclick = () => changePage(p);
+        paginationEl.appendChild(btn);
+    }
+
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'page-btn';
+    nextBtn.textContent = 'Next';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => changePage(currentPage + 1);
+    paginationEl.appendChild(nextBtn);
+
+    // bind page size selector
+    const pageSizeSel = document.getElementById('page-size');
+    if (pageSizeSel) {
+        pageSizeSel.value = String(pageSize);
+        pageSizeSel.onchange = (e) => {
+            pageSize = parseInt(e.target.value, 10);
+            localStorage.setItem('pageSize', String(pageSize));
+            currentPage = 1;
+            renderCars();
+        };
+    }
+}
+
+function changePage(page) {
+    currentPage = page;
+    renderCars();
+}
+
+function observeLazyImages() {
+    const imgs = document.querySelectorAll('img.car-image.lazy');
+    if ('IntersectionObserver' in window) {
+        if (!imageObserver) {
+            imageObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src || img.src;
+                        img.classList.remove('lazy');
+                        img.classList.add('loaded');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            }, { rootMargin: '100px' });
+        }
+        imgs.forEach(img => imageObserver.observe(img));
+    } else {
+        // Fallback: load all
+        imgs.forEach(img => { img.src = img.dataset.src || img.src; img.classList.add('loaded'); });
+    }
+}
                 filtered.sort((a, b) => a.price - b.price);
                 break;
             case 'price-high':
