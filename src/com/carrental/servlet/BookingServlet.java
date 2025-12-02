@@ -181,16 +181,21 @@ public class BookingServlet extends HttpServlet {
         }
 
         StringBuilder json = new StringBuilder("[");
+        com.carrental.dao.CarDAO carDAO = new com.carrental.dao.CarDAO();
         for (int i = 0; i < bookings.size(); i++) {
             Booking b = bookings.get(i);
+            com.carrental.model.Car car = carDAO.getCarById(b.getCarId());
+            String carName = car != null ? car.getName() : "Unknown Car";
+
             json.append(String.format(
-                    "{\"id\":%d, \"carId\":%d, \"startDate\":\"%s\", \"endDate\":\"%s\", \"totalPrice\":%.2f, \"status\":\"%s\", \"paymentStatus\":\"%s\"}",
-                    b.getId(), b.getCarId(),
+                    "{\"id\":%d, \"carId\":%d, \"carName\":\"%s\", \"startDate\":\"%s\", \"endDate\":\"%s\", \"totalPrice\":%.2f, \"status\":\"%s\", \"paymentStatus\":\"%s\", \"drivingLicensePath\":\"%s\"}",
+                    b.getId(), b.getCarId(), carName,
                     b.getStartDate() != null ? b.getStartDate().toString() : "",
                     b.getEndDate() != null ? b.getEndDate().toString() : "",
                     b.getTotalPrice(),
                     b.getStatus() != null ? b.getStatus() : "PENDING",
-                    b.getPaymentStatus() != null ? b.getPaymentStatus() : "UNPAID"));
+                    b.getPaymentStatus() != null ? b.getPaymentStatus() : "UNPAID",
+                    b.getDrivingLicensePath() != null ? b.getDrivingLicensePath().replace("\\", "\\\\") : ""));
             if (i < bookings.size() - 1) {
                 json.append(",");
             }
@@ -337,6 +342,48 @@ public class BookingServlet extends HttpServlet {
             } else {
                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 resp.getWriter().write("{\"success\":false, \"message\":\"Failed to cancel booking\"}");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write("{\"success\":false, \"message\":\"Error: " + e.getMessage() + "\"}");
+        }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+
+        // Check authentication
+        HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            resp.getWriter().write("{\"success\":false, \"message\":\"Unauthorized\"}");
+            return;
+        }
+
+        User user = (User) session.getAttribute("user");
+        if (!"ADMIN".equals(user.getRole())) {
+            resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            resp.getWriter().write("{\"success\":false, \"message\":\"Only admin can delete bookings\"}");
+            return;
+        }
+
+        try {
+            int bookingId = extractIdFromPath(req.getPathInfo());
+            if (bookingId == -1) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("{\"success\":false, \"message\":\"Invalid booking ID\"}");
+                return;
+            }
+
+            if (bookingDAO.deleteBooking(bookingId)) {
+                resp.setStatus(HttpServletResponse.SC_OK);
+                resp.getWriter().write("{\"success\":true, \"message\":\"Booking deleted\"}");
+            } else {
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                resp.getWriter().write("{\"success\":false, \"message\":\"Failed to delete booking\"}");
             }
         } catch (Exception e) {
             e.printStackTrace();
