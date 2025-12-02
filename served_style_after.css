@@ -437,7 +437,7 @@ ul {
 }
 
 .car-card:hover .car-image {
-    transform: scale(1.15);
+    transform: scale(1.1);
 }
 
 .car-badge {
@@ -676,49 +676,6 @@ ul {
     background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%);
     color: var(--success-color);
     border: 2px solid rgba(16, 185, 129, 0.3);
-}
-
-/* Payment Status Badges */
-.status-badge,
-.payment-badge {
-    display: inline-block;
-    padding: 0.3rem 0.8rem;
-    border-radius: 1rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.payment-unpaid {
-    background: rgba(239, 68, 68, 0.2);
-    color: #dc2626;
-}
-
-.payment-payment_requested {
-    background: rgba(245, 158, 11, 0.2);
-    color: #d97706;
-}
-
-.payment-paid {
-    background: rgba(16, 185, 129, 0.2);
-    color: #059669;
-}
-
-.status-pending {
-    background: rgba(245, 158, 11, 0.2);
-    color: #d97706;
-}
-
-.status-confirmed {
-    background: rgba(16, 185, 129, 0.2);
-    color: #059669;
-}
-
-.booking-actions {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
 }
 
 /* Empty State */

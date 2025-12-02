@@ -1,6 +1,7 @@
 package com.carrental.model;
 
 import java.sql.Date;
+import java.sql.Timestamp;
 
 public class Booking {
     private int id;
@@ -10,6 +11,11 @@ public class Booking {
     private Date endDate;
     private double totalPrice;
     private String status;
+    private Timestamp pickupDatetime;
+    private Timestamp dropoffDatetime;
+    private String drivingLicensePath;
+    private Timestamp createdAt;
+    private String paymentStatus; // UNPAID, PAYMENT_REQUESTED, PAID
 
     public Booking() {
     }
@@ -22,6 +28,21 @@ public class Booking {
         this.endDate = endDate;
         this.totalPrice = totalPrice;
         this.status = status;
+    }
+
+    public Booking(int id, int userId, int carId, Date startDate, Date endDate, Timestamp pickupDatetime, Timestamp dropoffDatetime, double totalPrice, String status, String drivingLicensePath, Timestamp createdAt) {
+        this.id = id;
+        this.userId = userId;
+        this.carId = carId;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.pickupDatetime = pickupDatetime;
+        this.dropoffDatetime = dropoffDatetime;
+        this.totalPrice = totalPrice;
+        this.status = status;
+        this.drivingLicensePath = drivingLicensePath;
+        this.createdAt = createdAt;
+        this.paymentStatus = "UNPAID";
     }
 
     public int getId() {
@@ -78,5 +99,45 @@ public class Booking {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Timestamp getPickupDatetime() {
+        return pickupDatetime;
+    }
+
+    public void setPickupDatetime(Timestamp pickupDatetime) {
+        this.pickupDatetime = pickupDatetime;
+    }
+
+    public Timestamp getDropoffDatetime() {
+        return dropoffDatetime;
+    }
+
+    public void setDropoffDatetime(Timestamp dropoffDatetime) {
+        this.dropoffDatetime = dropoffDatetime;
+    }
+
+    public String getDrivingLicensePath() {
+        return drivingLicensePath;
+    }
+
+    public void setDrivingLicensePath(String drivingLicensePath) {
+        this.drivingLicensePath = drivingLicensePath;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
     }
 }

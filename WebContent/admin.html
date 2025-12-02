@@ -179,6 +179,17 @@
                     <input type="text" id="carImage" name="carImage" placeholder="images/default.jpg">
                 </div>
                 <div class="form-group">
+                    <label for="carType">Vehicle Type:</label>
+                    <select id="carType" name="carType">
+                        <option value="CAR">Car</option>
+                        <option value="BIKE">Bike</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="carRegistration">Registration Number:</label>
+                    <input type="text" id="carRegistration" name="carRegistration" placeholder="KA01AB1234">
+                </div>
+                <div class="form-group">
                     <label for="carFeatures">Features:</label>
                     <textarea id="carFeatures" name="carFeatures" placeholder="e.g., GPS Navigation, Bluetooth, Air Conditioning"></textarea>
                 </div>
@@ -235,6 +246,9 @@
                 image: document.getElementById('carImage').value || 'images/default.jpg',
                 features: document.getElementById('carFeatures').value || 'Standard Features'
             };
+            // include optional values
+            carData.type = document.getElementById('carType') ? document.getElementById('carType').value : 'CAR';
+            carData.registrationNumber = document.getElementById('carRegistration') ? document.getElementById('carRegistration').value : '';
 
             try {
                 const response = await fetch('/api/admin/cars', {

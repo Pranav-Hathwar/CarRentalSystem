@@ -18,14 +18,8 @@ public class AdminCarServlet extends HttpServlet {
     private CarDAO carDAO = new CarDAO();
 
     @Override
-    protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        setCorsHeaders(resp);
-        resp.setStatus(HttpServletResponse.SC_OK);
-    }
-
-    @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        setCorsHeaders(resp);
+
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
 
@@ -56,6 +50,8 @@ public class AdminCarServlet extends HttpServlet {
         String priceStr = extractJsonValue(body, "price");
         String image = extractJsonValue(body, "image");
         String features = extractJsonValue(body, "features");
+        String type = extractJsonValue(body, "type");
+        String registrationNumber = extractJsonValue(body, "registrationNumber");
 
         if (name == null || name.isEmpty() || priceStr == null || priceStr.isEmpty()) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -70,10 +66,16 @@ public class AdminCarServlet extends HttpServlet {
         if (features == null || features.isEmpty()) {
             features = "Standard Features";
         }
+        if (type == null || type.isEmpty()) {
+            type = "CAR";
+        }
+        if (registrationNumber == null) {
+            registrationNumber = "";
+        }
 
         try {
             double price = Double.parseDouble(priceStr);
-            Car car = new Car(0, name, price, image, features);
+            Car car = new Car(0, name, price, image, features, type, registrationNumber);
             if (carDAO.addCar(car)) {
                 resp.setStatus(HttpServletResponse.SC_CREATED);
                 resp.getWriter().write("{\"success\":true, \"message\":\"Car added successfully\"}");
@@ -116,9 +118,4 @@ public class AdminCarServlet extends HttpServlet {
         }
     }
 
-    private void setCorsHeaders(HttpServletResponse resp) {
-        resp.setHeader("Access-Control-Allow-Origin", "*");
-        resp.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
-        resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    }
 }

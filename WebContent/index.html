@@ -14,11 +14,13 @@
 <body>
     <nav class="navbar">
         <div class="container nav-container">
-            <a href="index.html" class="logo">CarRental</a>
+            <a href="index.html" class="logo">🚗 CarRental</a>
             <ul class="nav-links">
                 <li><a href="index.html" class="active">Home</a></li>
-                <li><a href="cars.html">Cars</a></li>
-                <li><a href="bookings.html">My Bookings</a></li>
+                <li><a href="cars.html">Browse Fleet</a></li>
+                <li><a href="customer-dashboard.html">My Bookings</a></li>
+                <li id="owner-dashboard-link" style="display: none;"><a href="owner-dashboard.html">Owner Dashboard</a>
+                </li>
                 <li><button id="theme-toggle" class="theme-toggle" title="Toggle theme">☾</button></li>
             </ul>
         </div>
@@ -122,25 +124,23 @@
         async function loadFeaturedCars() {
             const featuredList = document.getElementById('featured-car-list');
             if (!featuredList) return;
-            
+
             try {
                 const response = await fetch('/api/cars');
                 if (!response.ok) throw new Error('Failed to load cars');
                 const cars = await response.json();
-                
+
                 // Show first 6 cars
                 const featuredCars = Array.isArray(cars) ? cars.slice(0, 6) : [];
-                
+
                 if (featuredCars.length === 0) {
                     featuredList.innerHTML = '<p class="empty-state">No cars available at the moment.</p>';
                     return;
                 }
-                
+
                 featuredList.innerHTML = featuredCars.map(car => {
-                    const imageUrl = car.image && car.image.startsWith('http') ? car.image : 
-                                    (car.image && car.image.startsWith('images/') ? car.image : 
-                                    'images/default.jpg');
-                    
+                    const imageUrl = getImageUrl(car.image);
+
                     return `
                         <div class="car-card">
                             <div class="car-image-container">
@@ -162,13 +162,13 @@
                 featuredList.innerHTML = '<p class="empty-state">Error loading cars. Please try again later.</p>';
             }
         }
-        
+
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
-        
+
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', loadFeaturedCars);
         } else {

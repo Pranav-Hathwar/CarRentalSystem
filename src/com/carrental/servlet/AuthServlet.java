@@ -17,16 +17,10 @@ public class AuthServlet extends HttpServlet {
     private UserDAO userDAO = new UserDAO();
 
     @Override
-    protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        setCorsHeaders(resp);
-        resp.setStatus(HttpServletResponse.SC_OK);
-    }
-
-    @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String path = req.getPathInfo();
         System.out.println("AuthServlet: Received request for path: " + path); // LOG
-        setCorsHeaders(resp);
+
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
 
@@ -41,12 +35,6 @@ public class AuthServlet extends HttpServlet {
         }
     }
 
-    private void setCorsHeaders(HttpServletResponse resp) {
-        resp.setHeader("Access-Control-Allow-Origin", "*");
-        resp.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
-        resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    }
-
     private void handleRegister(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             String body = readBody(req);
@@ -56,7 +44,9 @@ public class AuthServlet extends HttpServlet {
             String password = extractJsonValue(body, "password");
             String role = extractJsonValue(body, "role");
 
-            if (role == null || role.isEmpty())
+            // SECURITY: Force USER role for registrations (admin@example.com is hardcoded
+            // in DB)
+            if (role == null || role.isEmpty() || "ADMIN".equals(role))
                 role = "USER";
 
             if (name == null || name.isEmpty() || email == null || email.isEmpty() || password == null
@@ -69,7 +59,8 @@ public class AuthServlet extends HttpServlet {
             User user = new User(0, name, email, password, role);
             if (userDAO.registerUser(user)) {
                 resp.setStatus(HttpServletResponse.SC_CREATED);
-                resp.getWriter().write("{\"success\":true, \"message\":\"User registered successfully\"}");
+                resp.getWriter()
+                        .write("{\"success\":true, \"message\":\"User registered successfully\", \"role\":\"USER\"}");
             } else {
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
                 resp.getWriter().write("{\"success\":false, \"message\":\"Email already exists\"}");
@@ -98,6 +89,14 @@ public class AuthServlet extends HttpServlet {
 
             User user = userDAO.loginUser(email, password);
             if (user != null) {
+                // SECURITY: Only admin@example.com can be an ADMIN
+                if ("ADMIN".equals(user.getRole()) && !"admin@example.com".equals(email)) {
+                    System.out.println("AuthServlet: Unauthorized admin login attempt for: " + email); // LOG
+                    resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    resp.getWriter().write(
+                            "{\"success\":false, \"message\":\"Only admin@example.com can access admin features\"}");
+                    return;
+                }
                 System.out.println("AuthServlet: Login successful for user: " + user.getName()); // LOG
                 HttpSession session = req.getSession();
                 session.setAttribute("user", user);

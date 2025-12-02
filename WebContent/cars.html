@@ -8,7 +8,8 @@
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
@@ -28,13 +29,15 @@
         <div class="container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 class="section-title">Browse Our Fleet</h2>
-                <button id="admin-add-car-btn" class="btn btn-success" onclick="openAddCarModal()" style="display: none;">+ Add Car</button>
+                <button id="admin-add-car-btn" class="btn btn-success" onclick="openAddCarModal()"
+                    style="display: none;">+ Add Car</button>
             </div>
-            
+
             <!-- Search and Filter Section -->
             <div class="search-filter-container">
                 <div class="search-box">
-                    <input type="text" id="search-input" placeholder="🔍 Search cars by name or features..." class="search-input">
+                    <input type="text" id="search-input" placeholder="🔍 Search cars by name or features..."
+                        class="search-input">
                 </div>
                 <div class="filter-box">
                     <select id="price-filter" class="filter-select">
@@ -57,7 +60,8 @@
             </div>
 
             <!-- Pagination Controls -->
-            <div class="pagination-container" style="margin-top: 1.5rem; display:flex; justify-content:space-between; align-items:center; gap:1rem;">
+            <div class="pagination-container"
+                style="margin-top: 1.5rem; display:flex; justify-content:space-between; align-items:center; gap:1rem;">
                 <div>
                     <label for="page-size" style="color:var(--text-light); margin-right:0.5rem;">Per page:</label>
                     <select id="page-size" class="filter-select">
@@ -81,7 +85,7 @@
                 <input type="hidden" id="car-id">
                 <div class="booking-summary">
                     <h3 id="modal-car-name"></h3>
-                    <p>Price per day: ₹<span id="modal-price">0</span></p>
+                    <p>Price per day: <span id="modal-price">0</span></p>
                 </div>
                 <div class="form-group">
                     <label for="pickup-time">Pickup Date & Time</label>
@@ -91,8 +95,18 @@
                     <label for="dropoff-time">Dropoff Date & Time</label>
                     <input type="datetime-local" id="dropoff-time" required>
                 </div>
+                <div class="form-group">
+                    <label for="driver-dob">Driver Date of Birth</label>
+                    <input type="date" id="driver-dob" required>
+                </div>
+                <div class="form-group">
+                    <label for="driver-license">Upload Driving License (image/pdf)</label>
+                    <input type="file" id="driver-license" accept="image/*,.pdf" required>
+                    <small style="color:var(--text-light);">Pickup/Dropoff allowed between 09:00 and 21:00. Prices
+                        increase on Saturdays & Sundays.</small>
+                </div>
                 <div class="booking-summary">
-                    <p class="total-price">Total: ₹<span id="modal-total">0.00</span></p>
+                    <p class="total-price">Total: <span id="modal-total">0.00</span></p>
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">Confirm Booking</button>
             </form>
@@ -102,7 +116,8 @@
     <!-- Add Car Modal (Admin Only) -->
     <div id="add-car-modal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="document.getElementById('add-car-modal').classList.remove('active')">&times;</span>
+            <span class="close-modal"
+                onclick="document.getElementById('add-car-modal').classList.remove('active')">&times;</span>
             <h2>Add New Car</h2>
             <form id="add-car-form">
                 <div class="form-group">
@@ -122,6 +137,17 @@
                     <input type="text" id="car-features" required placeholder="GPS, Bluetooth, Automatic">
                 </div>
                 <div class="form-group">
+                    <label for="car-type">Vehicle Type</label>
+                    <select id="car-type" required class="filter-select">
+                        <option value="CAR">Car</option>
+                        <option value="BIKE">Bike</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="car-registration">Registration Number</label>
+                    <input type="text" id="car-registration" placeholder="KA01AB1234">
+                </div>
+                <div class="form-group">
                     <label for="car-image-url">Image URL</label>
                     <input type="text" id="car-image-url" required placeholder="https://example.com/image.jpg">
                 </div>
@@ -136,7 +162,7 @@
         </div>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=2"></script>
 </body>
 
 </html>

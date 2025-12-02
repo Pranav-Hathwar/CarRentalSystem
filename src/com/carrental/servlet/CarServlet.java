@@ -17,16 +17,10 @@ import java.util.List;
 public class CarServlet extends HttpServlet {
     private CarDAO carDAO = new CarDAO();
 
-    @Override
-    protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        setCorsHeaders(resp);
-        resp.setStatus(HttpServletResponse.SC_OK);
-    }
-
     // GET: Return all cars
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        setCorsHeaders(resp);
+
         List<Car> cars = carDAO.getAllCars();
 
         // Manual JSON construction with proper escaping
@@ -36,9 +30,12 @@ public class CarServlet extends HttpServlet {
             String name = escapeJson(c.getName() != null ? c.getName() : "");
             String image = escapeJson(c.getImage() != null ? c.getImage() : "");
             String features = escapeJson(c.getFeatures() != null ? c.getFeatures() : "");
+            String type = escapeJson(c.getType() != null ? c.getType() : "CAR");
+            String reg = escapeJson(c.getRegistrationNumber() != null ? c.getRegistrationNumber() : "");
             json.append(
-                    String.format("{\"id\":%d, \"name\":\"%s\", \"price\":%.2f, \"image\":\"%s\", \"features\":\"%s\"}",
-                            c.getId(), name, c.getPrice(), image, features));
+                    String.format(
+                            "{\"id\":%d, \"name\":\"%s\", \"price\":%.2f, \"image\":\"%s\", \"features\":\"%s\", \"type\":\"%s\", \"registrationNumber\":\"%s\"}",
+                            c.getId(), name, c.getPrice(), image, features, type, reg));
             if (i < cars.size() - 1)
                 json.append(",");
         }
@@ -54,7 +51,7 @@ public class CarServlet extends HttpServlet {
     // POST: Add a new car
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        setCorsHeaders(resp);
+
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
         StringBuilder sb = new StringBuilder();
@@ -70,6 +67,8 @@ public class CarServlet extends HttpServlet {
         String priceStr = extractJsonValue(body, "price");
         String image = extractJsonValue(body, "image");
         String features = extractJsonValue(body, "features");
+        String type = extractJsonValue(body, "type");
+        String registrationNumber = extractJsonValue(body, "registrationNumber");
 
         if (name == null || name.isEmpty() || priceStr == null || priceStr.isEmpty()) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -84,9 +83,15 @@ public class CarServlet extends HttpServlet {
         if (features == null || features.isEmpty()) {
             features = "Standard Features";
         }
+        if (type == null || type.isEmpty()) {
+            type = "CAR";
+        }
+        if (registrationNumber == null) {
+            registrationNumber = "";
+        }
 
         try {
-            Car car = new Car(0, name, Double.parseDouble(priceStr), image, features);
+            Car car = new Car(0, name, Double.parseDouble(priceStr), image, features, type, registrationNumber);
             if (carDAO.addCar(car)) {
                 resp.setStatus(HttpServletResponse.SC_CREATED);
                 resp.getWriter().write("{\"success\":true, \"message\":\"Car added successfully\"}");
@@ -103,7 +108,7 @@ public class CarServlet extends HttpServlet {
     // DELETE: Delete a car
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        setCorsHeaders(resp);
+
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
         String idStr = req.getParameter("id");
@@ -148,19 +153,14 @@ public class CarServlet extends HttpServlet {
             return json.substring(start, end).trim();
         }
     }
-    
-    private void setCorsHeaders(HttpServletResponse resp) {
-        resp.setHeader("Access-Control-Allow-Origin", "*");
-        resp.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
-        resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    }
-    
+
     private String escapeJson(String str) {
-        if (str == null) return "";
+        if (str == null)
+            return "";
         return str.replace("\\", "\\\\")
-                  .replace("\"", "\\\"")
-                  .replace("\n", "\\n")
-                  .replace("\r", "\\r")
-                  .replace("\t", "\\t");
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 }

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings - Car Rental System</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">🚗 CarRental</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="cars.html">Browse Cars</a></li>
+                <li><a href="customer-dashboard.html" class="active">My Bookings</a></li>
+                <li><button id="theme-toggle" class="theme-toggle" title="Toggle theme">☾</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">My Bookings & Requests</h2>
+
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="showTab('active-bookings')">Active Bookings</button>
+                <button class="btn btn-secondary" onclick="showTab('booking-history')">History</button>
+                <button class="btn btn-warning" onclick="showTab('cancellation-requests')">Cancellation
+                    Requests</button>
+            </div>
+
+            <!-- Active Bookings Tab -->
+            <div id="active-bookings-tab" class="dashboard-tab active">
+                <h3>Active Bookings</h3>
+                <div id="active-bookings-list" class="bookings-container">
+                    <p class="empty-state">No active bookings. <a href="cars.html">Browse cars</a> to make a booking.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Booking History Tab -->
+            <div id="booking-history-tab" class="dashboard-tab" style="display: none;">
+                <h3>Booking History</h3>
+                <div id="booking-history-list" class="bookings-container">
+                    <p class="empty-state">No booking history.</p>
+                </div>
+            </div>
+
+            <!-- Cancellation Requests Tab -->
+            <div id="cancellation-requests-tab" class="dashboard-tab" style="display: none;">
+                <h3>Cancellation Requests</h3>
+                <div id="cancellation-requests-list" class="cancellations-container">
+                    <p class="empty-state">No pending cancellation requests.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 CarRental System. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.dashboard-tab').forEach(tab => {
+                tab.style.display = 'none';
+                tab.classList.remove('active');
+            });
+            // Show selected tab
+            const selectedTab = document.getElementById(tabName + '-tab');
+            if (selectedTab) {
+                selectedTab.style.display = 'block';
+                selectedTab.classList.add('active');
+            }
+        }
+
+        async function loadMyBookings() {
+            try {
+                const response = await fetch('/api/bookings', {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    throw new Error('Failed to load bookings');
+                }
+
+                const bookings = await response.json();
+                const activeList = document.getElementById('active-bookings-list');
+                const historyList = document.getElementById('booking-history-list');
+
+                if (bookings.length === 0) {
+                    activeList.innerHTML = '<p class="empty-state">No active bookings. <a href="cars.html">Browse cars</a> to make a booking.</p>';
+                    return;
+                }
+
+                // Separate active and completed bookings
+                const now = new Date();
+                let activeHtml = '';
+                let historyHtml = '';
+
+                bookings.forEach(booking => {
+                    const endDate = new Date(booking.endDate);
+                    const isActive = endDate > now;
+                    const statusClass = booking.status ? booking.status.toLowerCase() : 'pending';
+                    const paymentStatus = booking.paymentStatus || 'UNPAID';
+
+                    const bookingCard = `
+                        <div class="booking-item">
+                            <div class="booking-info">
+                                <h4>Booking #${booking.id}</h4>
+                                <p><strong>Vehicle ID:</strong> ${booking.carId}</p>
+                                <p><strong>Dates:</strong> ${new Date(booking.startDate).toLocaleDateString()} to ${new Date(booking.endDate).toLocaleDateString()}</p>
+                                <p><strong>Total:</strong> ${formatCurrency(booking.totalPrice || 0)}</p>
+                                <p><strong>Booking Status:</strong> <span class="status-badge status-${statusClass}">${booking.status || 'PENDING'}</span></p>
+                                <p><strong>Payment Status:</strong> <span class="payment-badge payment-${paymentStatus.toLowerCase()}">${paymentStatus}</span></p>
+                            </div>
+                            <div class="booking-actions">
+                                ${paymentStatus === 'PAYMENT_REQUESTED' ? `<button class="btn btn-success" onclick="markPaymentDone(${booking.id})" style="margin-right: 0.5rem;">Confirm Payment</button>` : ''}
+                                ${isActive && booking.status === 'CONFIRMED' ? `<button class="btn btn-danger" onclick="requestCancellation(${booking.id})">Request Cancellation</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+
+                    if (isActive) {
+                        activeHtml += bookingCard;
+                    } else {
+                        historyHtml += bookingCard;
+                    }
+                });
+
+                activeList.innerHTML = activeHtml || '<p class="empty-state">No active bookings.</p>';
+                historyList.innerHTML = historyHtml || '<p class="empty-state">No booking history.</p>';
+            } catch (error) {
+                console.error('Error loading bookings:', error);
+                alert('Failed to load bookings');
+            }
+        }
+
+        async function requestCancellation(bookingId) {
+            if (!confirm('Request cancellation for this booking?')) return;
+
+            try {
+                const response = await fetch(`/api/bookings/${bookingId}/cancel`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Cancellation request submitted');
+                    loadMyBookings();
+                } else {
+                    alert(result.message || 'Failed to request cancellation');
+                }
+            } catch (error) {
+                console.error('Error requesting cancellation:', error);
+                alert('Error requesting cancellation');
+            }
+        }
+
+        async function markPaymentDone(bookingId) {
+            if (!confirm('Confirm that you have made the payment?')) return;
+
+            try {
+                const response = await fetch(`/api/bookings/${bookingId}/mark-paid`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Payment confirmed! Thank you.');
+                    loadMyBookings();
+                } else {
+                    alert(result.message || 'Failed to confirm payment');
+                }
+            } catch (error) {
+                console.error('Error confirming payment:', error);
+                alert('Error confirming payment');
+            }
+        }
+
+        // Load bookings on page load
+        window.addEventListener('DOMContentLoaded', loadMyBookings);
+    </script>
+    <script src="script.js"></script>
+</body>
+
+</html>

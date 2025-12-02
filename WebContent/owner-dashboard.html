@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Dashboard - Car Rental System</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">🚗 CarRental</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="owner-dashboard.html" class="active">Owner Dashboard</a></li>
+                <li><a href="cars.html">Fleet</a></li>
+                <li><button id="theme-toggle" class="theme-toggle" title="Toggle theme">☾</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Owner Dashboard</h2>
+
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="showTab('bookings')">Pending Bookings</button>
+                <button class="btn btn-secondary" onclick="showTab('cancellations')">Cancellation Requests</button>
+                <button class="btn btn-success" onclick="showTab('add-vehicle')">Add New Vehicle</button>
+            </div>
+
+            <!-- Pending Bookings Tab -->
+            <div id="bookings-tab" class="dashboard-tab active">
+                <h3>Pending Bookings (Awaiting Acceptance)</h3>
+                <div id="bookings-list" class="bookings-table-container">
+                    <p class="empty-state">Loading bookings...</p>
+                </div>
+            </div>
+
+            <!-- Cancellation Requests Tab -->
+            <div id="cancellations-tab" class="dashboard-tab" style="display: none;">
+                <h3>Cancellation Requests</h3>
+                <div id="cancellations-list" class="cancellations-table-container">
+                    <p class="empty-state">Loading cancellation requests...</p>
+                </div>
+            </div>
+
+            <!-- Add Vehicle Tab -->
+            <div id="add-vehicle-tab" class="dashboard-tab" style="display: none;">
+                <h3>Add New Vehicle</h3>
+                <form id="add-vehicle-form" class="auth-form" style="max-width: 600px;">
+                    <div class="form-group">
+                        <label for="vehicle-name">Vehicle Name</label>
+                        <input type="text" id="vehicle-name" required placeholder="Toyota Camry">
+                    </div>
+                    <div class="form-group">
+                        <label for="vehicle-type">Type</label>
+                        <select id="vehicle-type" required>
+                            <option value="CAR">Car</option>
+                            <option value="BIKE">Bike</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="vehicle-registration">Registration Number</label>
+                        <input type="text" id="vehicle-registration" placeholder="KA01AB1234" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="vehicle-price">Price per Day (₹)</label>
+                        <input type="number" id="vehicle-price" required step="0.01" placeholder="5000">
+                    </div>
+                    <div class="form-group">
+                        <label for="vehicle-features">Features</label>
+                        <textarea id="vehicle-features" placeholder="GPS, Bluetooth, Automatic"
+                            style="height: 80px;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="vehicle-image">Image URL</label>
+                        <input type="text" id="vehicle-image" required placeholder="https://example.com/image.jpg">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Add Vehicle</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 CarRental System. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.dashboard-tab').forEach(tab => {
+                tab.style.display = 'none';
+                tab.classList.remove('active');
+            });
+            // Show selected tab
+            const selectedTab = document.getElementById(tabName + '-tab');
+            if (selectedTab) {
+                selectedTab.style.display = 'block';
+                selectedTab.classList.add('active');
+            }
+        }
+
+        // Mock data loading (replace with actual API calls)
+        function loadOwnerData() {
+            console.log('Loading owner bookings and cancellations...');
+            // TODO: Implement API endpoints to fetch pending bookings and cancellations
+            loadPendingBookings();
+        }
+
+        async function loadPendingBookings() {
+            try {
+                const response = await fetch('/api/bookings', {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    throw new Error('Failed to load bookings');
+                }
+
+                const bookings = await response.json();
+                const bookingsList = document.getElementById('bookings-list');
+
+                // Filter for pending bookings
+                const pendingBookings = bookings.filter(b => b.status === 'PENDING' || b.status === 'CONFIRMED');
+
+                if (pendingBookings.length === 0) {
+                    bookingsList.innerHTML = '<p class="empty-state">No bookings to manage.</p>';
+                    return;
+                }
+
+                let html = '<table class="bookings-table" style="width: 100%; border-collapse: collapse;">';
+                html += '<tr style="background: var(--bg-light); border-bottom: 2px solid var(--border-color);">';
+                html += '<th style="padding: 1rem; text-align: left;">Booking ID</th>';
+                html += '<th style="padding: 1rem; text-align: left;">Vehicle</th>';
+                html += '<th style="padding: 1rem; text-align: left;">Dates</th>';
+                html += '<th style="padding: 1rem; text-align: left;">Amount</th>';
+                html += '<th style="padding: 1rem; text-align: left;">Payment</th>';
+                html += '<th style="padding: 1rem; text-align: left;">Actions</th></tr>';
+
+                pendingBookings.forEach(booking => {
+                    const paymentStatus = booking.paymentStatus || 'UNPAID';
+                    html += '<tr style="border-bottom: 1px solid var(--border-color);">';
+                    html += `<td style="padding: 1rem;">#${booking.id}</td>`;
+                    html += `<td style="padding: 1rem;">Vehicle ${booking.carId}</td>`;
+                    html += `<td style="padding: 1rem;">${new Date(booking.startDate).toLocaleDateString()} to ${new Date(booking.endDate).toLocaleDateString()}</td>`;
+                    html += `<td style="padding: 1rem;">${formatCurrency(booking.totalPrice || 0)}</td>`;
+                    html += `<td style="padding: 1rem;"><span class="payment-badge payment-${paymentStatus.toLowerCase()}">${paymentStatus}</span></td>`;
+                    html += `<td style="padding: 1rem;">`;
+                    if (paymentStatus === 'UNPAID') {
+                        html += `<button class="btn btn-warning" onclick="requestPayment(${booking.id})" style="font-size: 0.85rem; padding: 0.4rem 0.8rem; margin-right: 0.5rem;">Request Payment</button>`;
+                    }
+                    if (booking.drivingLicensePath) {
+                        html += `<button class="btn btn-secondary" onclick="viewLicense('${booking.drivingLicensePath}')" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">View DL</button>`;
+                    }
+                    html += `</td></tr>`;
+                });
+
+                html += '</table>';
+                bookingsList.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading bookings:', error);
+                alert('Failed to load bookings');
+            }
+        }
+
+        function viewLicense(path) {
+            // In a real app, this would open the file. For now, we'll just alert or open in new tab if it's a URL.
+            // Since we're just storing filenames, we might need a full URL.
+            // Assuming uploads are served from a specific path or just alerting for now.
+            alert('Driving License Path: ' + path);
+            // window.open(path, '_blank');
+        }
+
+        async function requestPayment(bookingId) {
+            if (!confirm('Send payment request to customer?')) return;
+
+            try {
+                const response = await fetch(`/api/bookings/${bookingId}/request-payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Payment request sent!');
+                    loadPendingBookings();
+                } else {
+                    alert(result.message || 'Failed to send payment request');
+                }
+            } catch (error) {
+                console.error('Error requesting payment:', error);
+                alert('Error requesting payment');
+            }
+        }
+
+        document.getElementById('add-vehicle-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const vehicleData = {
+                name: document.getElementById('vehicle-name').value,
+                type: document.getElementById('vehicle-type').value,
+                registrationNumber: document.getElementById('vehicle-registration').value,
+                price: parseFloat(document.getElementById('vehicle-price').value),
+                features: document.getElementById('vehicle-features').value,
+                image: document.getElementById('vehicle-image').value
+            };
+
+            try {
+                const response = await fetch('/api/admin/cars', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(vehicleData)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert('Vehicle added successfully!');
+                    document.getElementById('add-vehicle-form').reset();
+                } else {
+                    alert(result.message || 'Failed to add vehicle');
+                }
+            } catch (error) {
+                console.error('Error adding vehicle:', error);
+                alert('Error adding vehicle');
+            }
+        });
+
+        loadOwnerData();
+    </script>
+    <script src="script.js"></script>
+</body>
+
+</html>
