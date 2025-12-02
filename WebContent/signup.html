@@ -8,21 +8,11 @@
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
-    <nav class="navbar">
-        <div class="container nav-container">
-            <a href="index.html" class="logo">🚗 CarRental</a>
-            <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="cars.html">Cars</a></li>
-                <li><a href="login.html">Login</a></li>
-                <li><button id="theme-toggle" class="theme-toggle" title="Toggle theme">☾</button></li>
-            </ul>
-        </div>
-    </nav>
 
     <div class="container">
         <form id="signupForm" class="auth-form">
@@ -39,12 +29,15 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" required placeholder="Create a secure password" minlength="6">
             </div>
-            <div style="padding: 1rem; background: var(--bg-light); border-radius: var(--radius); margin-bottom: 1rem; color: var(--text-light); font-size: 0.95rem;">
-                <strong>Note:</strong> All new registrations are created as Regular Users. Admin accounts are managed separately.
+            <div
+                style="padding: 1rem; background: var(--bg-light); border-radius: var(--radius); margin-bottom: 1rem; color: var(--text-light); font-size: 0.95rem;">
+                <strong>Note:</strong> All new registrations are created as Regular Users. Admin accounts are managed
+                separately.
             </div>
             <button type="submit" class="btn btn-primary btn-block">Create Account</button>
             <p style="text-align: center; margin-top: 20px; color: var(--text-light);">
-                Already have an account? <a href="login.html" style="color: var(--primary-color); font-weight: 600;">Login</a>
+                Already have an account? <a href="login.html"
+                    style="color: var(--primary-color); font-weight: 600;">Login</a>
             </p>
         </form>
     </div>
@@ -55,7 +48,30 @@
         </div>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=3"></script>
 </body>
 
-</html>
+<nav class="navbar">
+    <div class="container nav-container">
+        <a id="home-link" href="index.html" class="logo">CarRental</a>
+        <div class="nav-links">
+            <a id="cars-link" href="cars.html">Cars</a>
+            <a id="bookings-link" href="bookings.html">Bookings</a>
+            <a id="admin-dashboard-link" href="admin-dashboard.html">Admin Dashboard</a>
+            <a id="login-link" href="login.html">Login</a>
+            <a id="signup-link" href="signup.html">Sign Up</a>
+        </div>
+    </div>
+</nav>
+<script>
+    (function () {
+        const links = document.querySelectorAll('.navbar .nav-links a');
+        const path = location.pathname.split('/').pop();
+        links.forEach(a => {
+            const href = a.getAttribute('href');
+            if (href === path || (href === 'index.html' && (!path || path === 'index.html'))) a.classList.add('active');
+        });
+    })();
+</script>
+
+<main class="auth-form">

@@ -48,26 +48,8 @@ const searchInput = document.getElementById('search-input');
 const priceFilter = document.getElementById('price-filter');
 const sortFilter = document.getElementById('sort-filter');
 
-// Theme
-function initTheme() {
-    const theme = localStorage.getItem('theme') || 'dark';
-    if (theme === 'dark') document.body.classList.add('dark-theme');
-    else document.body.classList.remove('dark-theme');
-    const btn = document.getElementById('theme-toggle');
-    if (btn) btn.textContent = document.body.classList.contains('dark-theme') ? '☀' : '☾';
-}
-
-function toggleTheme() {
-    document.body.classList.toggle('dark-theme');
-    const active = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
-    localStorage.setItem('theme', active);
-    const btn = document.getElementById('theme-toggle');
-    if (btn) btn.textContent = document.body.classList.contains('dark-theme') ? '☀' : '☾';
-}
-
 // Initialize
 function init() {
-    initTheme();
     updateNav();
     if (carListEl) {
         fetchCars();
@@ -86,41 +68,51 @@ function init() {
 
 function updateNav() {
     if (!navLinks) return;
-    const authLinks = navLinks.querySelectorAll('.auth-link');
-    authLinks.forEach(link => link.remove());
+    // Ensure link elements exist and control visibility by id
+    const homeLink = document.getElementById('home-link');
+    const carsLink = document.getElementById('cars-link');
+    const bookingsLink = document.getElementById('bookings-link');
+    const adminDashboardLink = document.getElementById('admin-dashboard-link');
+    const loginLink = document.getElementById('login-link');
+    const signupLink = document.getElementById('signup-link');
+
+    // hide everything by default (only show what the role allows)
+    [homeLink, carsLink, bookingsLink, adminDashboardLink, loginLink, signupLink].forEach(el => {
+        if (el) el.style.display = 'none';
+    });
+
     currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
+    if (!currentUser) {
+        // not logged in: show Home, Cars, Login, Signup
+        if (homeLink) homeLink.style.display = 'inline-block';
+        if (carsLink) carsLink.style.display = 'inline-block';
+        if (loginLink) loginLink.style.display = 'inline-block';
+        if (signupLink) signupLink.style.display = 'inline-block';
+    } else if (currentUser.role === 'ADMIN') {
+        // admin: show Home, Cars, Admin Dashboard
+        if (homeLink) homeLink.style.display = 'inline-block';
+        if (carsLink) carsLink.style.display = 'inline-block';
+        if (adminDashboardLink) adminDashboardLink.style.display = 'inline-block';
+    } else {
+        // normal user: show Home, Cars, Bookings
+        if (homeLink) homeLink.style.display = 'inline-block';
+        if (carsLink) carsLink.style.display = 'inline-block';
+        if (bookingsLink) bookingsLink.style.display = 'inline-block';
+    }
+
+    // remove existing dynamic auth links
+    const authLinks = navLinks.querySelectorAll('.auth-link');
+    authLinks.forEach(link => link.remove());
+
+    // append logout if logged in, or ensure login/signup are visible when not logged in
     if (currentUser) {
         const logoutLink = document.createElement('a');
         logoutLink.href = '#';
         logoutLink.textContent = `Logout (${currentUser.username})`;
         logoutLink.className = 'auth-link';
         logoutLink.onclick = (e) => { e.preventDefault(); logout(); };
-
-        const userInfo = document.createElement('span');
-        userInfo.textContent = currentUser.username;
-        userInfo.className = 'user-info';
-
         navLinks.appendChild(logoutLink);
-
-        // Show owner dashboard link if admin
-        const ownerLink = document.getElementById('owner-dashboard-link');
-        if (ownerLink) {
-            if (currentUser.role === 'ADMIN') {
-                ownerLink.style.display = 'block';
-            } else {
-                ownerLink.style.display = 'none';
-            }
-        }
-    } else {
-        const loginLink = document.createElement('a');
-        loginLink.href = 'login.html';
-        loginLink.textContent = 'Login';
-        loginLink.className = 'auth-link';
-        navLinks.appendChild(loginLink);
-
-        const ownerLink = document.getElementById('owner-dashboard-link');
-        if (ownerLink) ownerLink.style.display = 'none';
     }
 }
 
@@ -329,10 +321,66 @@ function renderBookings() {
                     <p><strong>Dates:</strong> ${formatDate(booking.startDate)} to ${formatDate(booking.endDate)}</p>
                     <p><strong>Total:</strong> ${formatCurrency(booking.totalPrice || 0)}</p>
                 </div>
-                <div class="booking-status status-${statusClass}">${booking.status || 'PENDING'}</div>
+                <div class="booking-actions">
+                    <div class="booking-status status-${statusClass}">${booking.status || 'PENDING'}</div>
+                    ${statusClass !== 'cancelled' ? `<button onclick="openCancellationModal(${booking.id})" class="btn btn-sm btn-danger" style="margin-top: 10px; background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Cancel</button>` : ''}
+                </div>
             </div>
         `;
     }).join('');
+}
+
+function openCancellationModal(bookingId) {
+    const modal = document.getElementById('cancellation-modal');
+    const input = document.getElementById('cancel-booking-id');
+    if (modal && input) {
+        input.value = bookingId;
+        modal.classList.add('active');
+    }
+}
+
+function closeCancellationModal() {
+    const modal = document.getElementById('cancellation-modal');
+    if (modal) modal.classList.remove('active');
+}
+
+async function handleCancellation(e) {
+    e.preventDefault();
+    const bookingId = document.getElementById('cancel-booking-id').value;
+    const reason = document.getElementById('cancel-reason').value.trim();
+
+    if (!bookingId || !reason) {
+        alert('Please provide a reason for cancellation.');
+        return;
+    }
+
+    try {
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Cancelling...'; }
+
+        const response = await fetch('/api/bookings/cancel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ bookingId: parseInt(bookingId), reason: reason })
+        });
+
+        const data = await response.json();
+        if (response.ok && data.success) {
+            alert('Cancellation request submitted successfully.');
+            closeCancellationModal();
+            e.target.reset();
+            fetchBookings();
+        } else {
+            alert(data.message || 'Failed to cancel booking.');
+        }
+    } catch (error) {
+        console.error('Error cancelling booking:', error);
+        alert('Error cancelling booking. Please try again.');
+    } finally {
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Confirm Cancellation'; }
+    }
 }
 
 function formatDate(dateStr) {
@@ -484,7 +532,7 @@ async function handleLogin(e) {
             localStorage.setItem('currentUser', JSON.stringify({
                 username: data.username, role: data.role, id: data.id, email: data.email
             }));
-            if (data.role === 'ADMIN') window.location.href = 'owner-dashboard.html';
+            if (data.role === 'ADMIN') window.location.href = 'admin-dashboard.html';
             else window.location.href = 'index.html';
         } else {
             alert(data.message || 'Login failed.');
@@ -586,8 +634,21 @@ function setupEventListeners() {
     if (addCarCloseBtn) addCarCloseBtn.addEventListener('click', closeAddCarModal);
     const addCarForm = document.getElementById('add-car-form');
     if (addCarForm) addCarForm.addEventListener('submit', handleAddCar);
-    const themeBtn = document.getElementById('theme-toggle');
-    if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+
+    // Cancellation Modal
+    const cancelModal = document.getElementById('cancellation-modal');
+    const cancelCloseBtn = document.querySelector('#cancellation-modal .close-modal');
+    const cancelForm = document.getElementById('cancellation-form');
+
+    if (cancelCloseBtn) cancelCloseBtn.addEventListener('click', closeCancellationModal);
+    if (cancelForm) cancelForm.addEventListener('submit', handleCancellation);
+
+    window.addEventListener('click', (e) => {
+        if (modal && e.target === modal) closeModal();
+        const addCarModal = document.getElementById('add-car-modal');
+        if (addCarModal && e.target === addCarModal) closeAddCarModal();
+        if (cancelModal && e.target === cancelModal) closeCancellationModal();
+    });
 }
 
 function escapeHtml(text) {

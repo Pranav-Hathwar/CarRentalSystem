@@ -14,8 +14,8 @@
     --text-lighter: #9ca3af;
     
     /* Background Colors */
-    --bg-color: #ffffff;
-    --bg-light: #f9fafb;
+    --bg-color: #F5F5DC;
+    --bg-light: #F0E68C;
     --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --bg-gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     --bg-gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
@@ -146,6 +146,7 @@ ul {
 }
 
 .hero-content {
+    color: white;
     max-width: 800px;
     position: relative;
     z-index: 1;
@@ -169,6 +170,7 @@ ul {
     margin-bottom: 1.5rem;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     line-height: 1.2;
+    color: white;
 }
 
 .hero p {
@@ -176,6 +178,7 @@ ul {
     margin-bottom: 2.5rem;
     opacity: 0.95;
     font-weight: 400;
+    color: white;
 }
 
 /* Buttons */
@@ -682,6 +685,44 @@ ul {
     color: #dc2626;
 }
 
+/* Dashboard Tab Styles */
+.dashboard-tab {
+    display: none;
+}
+
+.dashboard-tab.active {
+    display: block;
+}
+
+.bookings-table-container,
+.cancellations-table-container {
+    margin-top: 1rem;
+    overflow-x: auto;
+}
+
+.bookings-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.bookings-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    text-align: left;
+}
+
+.bookings-table td,
+.bookings-table th {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.bookings-table tr:hover {
+    background-color: #f9fafb;
+}
+
 .payment-payment_requested {
     background: rgba(245, 158, 11, 0.2);
     color: #d97706;
@@ -740,6 +781,7 @@ ul {
 
     .hero h1 {
         font-size: 2.5rem;
+        color: white;
     }
 
     .car-grid {
@@ -770,6 +812,7 @@ ul {
 
     .hero h1 {
         font-size: 2rem;
+        color: white;
     }
 
     .hero p {
@@ -828,31 +871,6 @@ html {
     scroll-behavior: smooth;
 }
 
-/* Dark theme overrides */
-body.dark-theme {
-    --bg-color: #0b1020;
-    --bg-light: #0f1724;
-    --white: #e6eef8;
-    --text-color: #e6eef8;
-    --text-light: #94a3b8;
-    --text-lighter: #64748b;
-    --border-color: rgba(255,255,255,0.06);
-    --bg-gradient: linear-gradient(135deg, #0f1724 0%, #081226 100%);
-    --bg-gradient-2: linear-gradient(135deg, #0b1220 0%, #0b2a3a 100%);
-    --bg-gradient-3: linear-gradient(135deg, #04202a 0%, #08304a 100%);
-    --shadow: 0 8px 20px rgba(2,6,23,0.6);
-    --shadow-lg: 0 20px 40px rgba(2,6,23,0.7);
-}
-
-.theme-toggle {
-    background: transparent;
-    border: 2px solid rgba(255,255,255,0.04);
-    color: var(--white);
-    padding: 0.45rem 0.6rem;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    font-size: 1rem;
-}
 
 .logo {
     display: inline-flex;

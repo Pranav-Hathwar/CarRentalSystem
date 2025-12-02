@@ -13,17 +13,6 @@
 </head>
 
 <body>
-    <nav class="navbar">
-        <div class="container nav-container">
-            <a href="index.html" class="logo">🚗 CarRental</a>
-            <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="cars.html">Browse Cars</a></li>
-                <li><a href="customer-dashboard.html" class="active">My Bookings</a></li>
-                <li><button id="theme-toggle" class="theme-toggle" title="Toggle theme">☾</button></li>
-            </ul>
-        </div>
-    </nav>
 
     <section class="section">
         <div class="container">
@@ -202,4 +191,29 @@
     <script src="script.js"></script>
 </body>
 
-</html>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a id="home-link" href="index.html" class="logo">CarRental</a>
+            <div class="nav-links">
+                <a id="cars-link" href="cars.html">Cars</a>
+                <a id="bookings-link" href="bookings.html">Bookings</a>
+                <a id="owner-dashboard-link" href="owner-dashboard.html">Owner</a>
+                <a id="admin-cars-link" href="admin.html">Add Car</a>
+                <a id="admin-bookings-link" href="owner-dashboard.html">Bookings (Admin)</a>
+                <a id="login-link" href="login.html">Login</a>
+                <a id="signup-link" href="signup.html">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+    <script>
+        (function(){
+            const links = document.querySelectorAll('.navbar .nav-links a');
+            const path = location.pathname.split('/').pop();
+            links.forEach(a=>{
+                const href = a.getAttribute('href');
+                if (href === path || (href === 'index.html' && (!path || path === 'index.html'))) a.classList.add('active');
+            });
+        })();
+    </script>
+
+    <div class="container">

@@ -13,17 +13,29 @@
 </head>
 
 <body>
+
     <nav class="navbar">
         <div class="container nav-container">
-            <a href="index.html" class="logo">🚗 CarRental</a>
-            <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="cars.html" class="active">Cars</a></li>
-                <li><a href="bookings.html">My Bookings</a></li>
-                <li><button id="theme-toggle" class="theme-toggle" title="Toggle theme">☾</button></li>
-            </ul>
+            <a id="home-link" href="index.html" class="logo">CarRental</a>
+            <div class="nav-links">
+                <a id="cars-link" href="cars.html">Cars</a>
+                <a id="bookings-link" href="bookings.html">Bookings</a>
+                <a id="admin-dashboard-link" href="admin-dashboard.html">Admin Dashboard</a>
+                <a id="login-link" href="login.html">Login</a>
+                <a id="signup-link" href="signup.html">Sign Up</a>
+            </div>
         </div>
     </nav>
+    <script>
+        (function () {
+            const links = document.querySelectorAll('.navbar .nav-links a');
+            const path = location.pathname.split('/').pop();
+            links.forEach(a => {
+                const href = a.getAttribute('href');
+                if (href === path || (href === 'index.html' && (!path || path === 'index.html'))) a.classList.add('active');
+            });
+        })();
+    </script>
 
     <section class="section">
         <div class="container">
@@ -162,7 +174,7 @@
         </div>
     </footer>
 
-    <script src="script.js?v=2"></script>
+    <script src="script.js?v=3"></script>
 </body>
 
 </html>
